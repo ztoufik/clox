@@ -1,25 +1,17 @@
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required(VERSION 4.1.0)
 
-## Load CMAKE configuration from environment variables
-set( CMAKE_MODULE_PATH $ENV{CMAKE_MODULE_PATH} )
-set( CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH} )
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-                       
-## Specify a project name
-project( generic_project_name )
+project(tua)
 
-
-## Set the build type
-if( NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE "Release" 
-       CACHE STRING "Build configuration 'Release' or 'Debug'."
-       FORCE )
-endif()
+# set the C++ standard
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-## Install the executable to <install_directory>/bin
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-## Install libraries (if any) to <install_directory>/bin
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/src bin)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+
+enable_testing()
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/test)
