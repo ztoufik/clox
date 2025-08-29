@@ -2,6 +2,7 @@
 #define  LEXER_H
 
 #include <string>
+#include <unordered_map>
 
 enum class TokenKind {
     Eof ,
@@ -37,7 +38,6 @@ enum class TokenKind {
     IF ,
     NIL ,
     OR ,
-    PRINT ,
     RETURN ,
     SUPER ,
     THIS ,
@@ -47,29 +47,32 @@ enum class TokenKind {
 };
 
 struct Token {
-  TokenKind kind;
-  std::string value;
-  std::uint16_t line;
+    TokenKind kind;
+    std::string value;
+    std::uint16_t line;
 
-  Token(TokenKind kind, std::string value,std::uint16_t line) : kind(kind), value(value),line(line) {}
-  Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
+    Token(TokenKind kind, std::string value,std::uint16_t line) : kind(kind), value(value),line(line) {}
+    Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
 
-  //friend std::ostream &operator<<(std::ostream &os, const Token token);
+    //friend std::ostream &operator<<(std::ostream &os, const Token token);
 };
 
 //std::ostream &operator<<(std::ostream &os, const Token token);
 
 class Lexer {
-private:
-    std::uint16_t current_char;
-    std::uint16_t current_line;
-    std::string src;
+    private:
+        std::uint16_t current_char;
+        std::uint16_t current_line;
+        std::string src;
 
-public:
-  Lexer(std::string src):src(src),current_char(0),current_line(0){}
-  Token tokenize_ident();
-  Token tokenize_numeric();
-  Token get_token();
+    public:
+        Lexer(std::string src):src(src),current_char(0),current_line(0){}
+        Token tokenize_ident();
+        Token tokenize_numeric();
+        Token tokenize_string();
+        Token get_token();
+
+        static const std::unordered_map<std::string,TokenKind> key_words;
 };
 
 #endif
