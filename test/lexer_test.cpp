@@ -21,26 +21,29 @@ TEST_P(LexerFixture, Tokens) {
     ASSERT_EQ(expected_token.line, token.line);
 }
 
-//INSTANTIATE_TEST_SUITE_P(
-//        MonocharToken,
-//        LexerFixture,
-//        ::testing::Values(
-//            std::tuple(std::string(""),Token(TokenKind::Eof,"",0)),
-//            std::tuple(std::string("\n"),Token(TokenKind::Eof,"",1)),
-//            std::tuple(std::string(")"),Token(TokenKind::RIGHT_PAREN,"",0)),
-//            std::tuple(std::string("("),Token(TokenKind::LEFT_PAREN,"",0)),
-//            std::tuple(std::string("["),Token(TokenKind::LEFT_BRACE,"",0)),
-//            std::tuple(std::string("]"),Token(TokenKind::RIGHT_BRACE,"",0)),
-//            std::tuple(std::string(","),Token(TokenKind::COMMA,"",0)),
-//            std::tuple(std::string("."),Token(TokenKind::DOT,"",0)),
-//            std::tuple(std::string(";"),Token(TokenKind::SEMICOLON,"",0)),
-//            std::tuple(std::string("*"),Token(TokenKind::STAR,"",0)),
-//            std::tuple(std::string("/"),Token(TokenKind::SLASH,"",0)),
-//            std::tuple(std::string("+"),Token(TokenKind::PLUS,"",0)),
-//            std::tuple(std::string("-"),Token(TokenKind::MINUS,"",0)),
-//            std::tuple(std::string("!"),Token(TokenKind::BANG,"",0))
-//            )
-//        );
+INSTANTIATE_TEST_SUITE_P(
+        MonocharToken,
+        LexerFixture,
+        ::testing::Values(
+            std::tuple(std::string(""),Token(TokenKind::Eof,0)),
+            std::tuple(std::string("\n"),Token(TokenKind::Eof,1)),
+            std::tuple(std::string(")"),Token(TokenKind::RIGHT_PAREN,0)),
+            std::tuple(std::string("("),Token(TokenKind::LEFT_PAREN,0)),
+            std::tuple(std::string("["),Token(TokenKind::LEFT_BRACE,0)),
+            std::tuple(std::string("]"),Token(TokenKind::RIGHT_BRACE,0)),
+            std::tuple(std::string(","),Token(TokenKind::COMMA,0)),
+            std::tuple(std::string("."),Token(TokenKind::DOT,0)),
+            std::tuple(std::string(";"),Token(TokenKind::SEMICOLON,0)),
+            std::tuple(std::string("*"),Token(TokenKind::STAR,0)),
+            std::tuple(std::string("/"),Token(TokenKind::SLASH,0)),
+            std::tuple(std::string("+"),Token(TokenKind::PLUS,0)),
+            std::tuple(std::string("-"),Token(TokenKind::MINUS,0)),
+            std::tuple(std::string("="),Token(TokenKind::EQUAL,0)),
+            std::tuple(std::string("=="),Token(TokenKind::EQUAL_EQUAL,0)),
+            std::tuple(std::string("!"),Token(TokenKind::BANG,0)),
+            std::tuple(std::string("!="),Token(TokenKind::BANG_EQUAL,0))
+            )
+        );
 
 //INSTANTIATE_TEST_SUITE_P(
 //        NumericToken,
@@ -91,11 +94,11 @@ TEST_P(LexerFixture, Tokens) {
 //            )
 //        );
 
-INSTANTIATE_TEST_SUITE_P(
-        comment,
-        LexerFixture,
-        ::testing::Values(
-            std::tuple(std::string("//toufik"),Token(TokenKind::Eof,0)),
-            std::tuple(std::string("\n//toufik"),Token(TokenKind::Eof,1))
-            )
-        );
+//INSTANTIATE_TEST_SUITE_P(
+//        comment,
+//        LexerFixture,
+//        ::testing::Values(
+//            std::tuple(std::string("//toufik"),Token(TokenKind::Eof,0)),
+//            std::tuple(std::string("\n//toufik"),Token(TokenKind::Eof,1))
+//            )
+//        );

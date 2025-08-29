@@ -98,7 +98,6 @@ Token Lexer::get_token(){
         case '+':{current_char++;return Token(TokenKind::PLUS,current_line);}
         case '-':{current_char++;return Token(TokenKind::MINUS,current_line);}
         case '*':{current_char++;return Token(TokenKind::STAR,current_line);}
-        case '!':{current_char++;return Token(TokenKind::BANG,current_line);}
         case '"':{current_char++;return tokenize_string();}
         case '/':{
                      current_char++;
@@ -106,6 +105,18 @@ Token Lexer::get_token(){
                      current_char++;
                      while(src[current_char]!='\n'&& current_char < src.length()) {current_char++;}
 
+                 }
+        case '=':{
+                     current_char++;
+                     if (src[current_char]!='=' ){return Token(TokenKind::EQUAL,current_line);}
+                     current_char++;
+                     {return Token(TokenKind::EQUAL_EQUAL,current_line);}
+                 }
+        case '!':{
+                     current_char++;
+                     if (src[current_char]!='=' ){return Token(TokenKind::BANG,current_line);}
+                     current_char++;
+                     {return Token(TokenKind::BANG_EQUAL,current_line);}
                  }
         default: break;
     };
