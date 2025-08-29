@@ -3,21 +3,6 @@
 #include<sstream>
 #include<iostream>
 
-//std::ostream &operator<<(std::ostream &os, const Token token) {
-//    switch (token.kind) {
-//        case TokenKind::Eof: {
-//                                 os << "EOF" << std::endl;
-//                                 break;
-//                             }
-//        case TokenKind::Identifier:
-//        case TokenKind::Number: {
-//                                    os << "identifier: " << token.value << std::endl;
-//                                    break;
-//                                }
-//    }
-//    return os;
-//}
-//
 
 const std::unordered_map<std::string,TokenKind> Lexer::key_words={
     {std::string("class"),TokenKind::CLASS},
@@ -56,6 +41,10 @@ Token Lexer::tokenize_ident(){
     if(tkind_ptr==Lexer::key_words.end())
         return Token(TokenKind::IDENTIFIER,word,current_line);
     return Token(tkind_ptr->second,current_line);
+}
+
+void Lexer::tokenize_comment(){
+
 }
 
 Token Lexer::tokenize_numeric(){
@@ -108,10 +97,16 @@ Token Lexer::get_token(){
         case '.':{current_char++;return Token(TokenKind::DOT,current_line);}
         case '+':{current_char++;return Token(TokenKind::PLUS,current_line);}
         case '-':{current_char++;return Token(TokenKind::MINUS,current_line);}
-        case '/':{current_char++;return Token(TokenKind::SLASH,current_line);}
         case '*':{current_char++;return Token(TokenKind::STAR,current_line);}
         case '!':{current_char++;return Token(TokenKind::BANG,current_line);}
         case '"':{current_char++;return tokenize_string();}
+        case '/':{
+                     current_char++;
+                     if (src[current_char]!='/' ){return Token(TokenKind::SLASH,current_line);}
+                     current_char++;
+                     while(src[current_char]!='\n'&& current_char < src.length()) {current_char++;}
+
+                 }
         default: break;
     };
 

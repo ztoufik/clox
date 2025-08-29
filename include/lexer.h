@@ -71,8 +71,25 @@ class Lexer {
         Token tokenize_numeric();
         Token tokenize_string();
         Token get_token();
+        void tokenize_comment();
 
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
+
+//std::ostream &operator<<(std::ostream &os, const Token token) {
+//    switch (token.kind) {
+//        case TokenKind::Eof: {
+//                                 os << "EOF" << std::endl;
+//                                 break;
+//                             }
+//        case TokenKind::Identifier:
+//        case TokenKind::Number: {
+//                                    os << "identifier: " << token.value << std::endl;
+//                                    break;
+//                                }
+//    }
+//    return os;
+//}
+//
 
 #endif
