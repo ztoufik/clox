@@ -39,12 +39,8 @@ Token Lexer::tokenize_ident(){
     auto tkind_ptr=Lexer::key_words.find(word);
     std::cout<<(tkind_ptr==Lexer::key_words.end())<<std::endl;
     if(tkind_ptr==Lexer::key_words.end())
-        return Token(TokenKind::IDENTIFIER,word,current_line);
+        return Token(TokenKind::IDENTIFIER,std::move(word),current_line);
     return Token(tkind_ptr->second,current_line);
-}
-
-void Lexer::tokenize_comment(){
-
 }
 
 Token Lexer::tokenize_numeric(){
@@ -67,7 +63,7 @@ Token Lexer::tokenize_numeric(){
         }
     current_char++;
     }
-    return Token(tkind,ss.str(),current_line);
+    return Token(tkind,std::move(ss.str()),current_line);
 }
 
 Token Lexer::tokenize_string(){
@@ -77,11 +73,10 @@ Token Lexer::tokenize_string(){
         current_char++;
     };
     current_char++;
-    return Token(TokenKind::STRING,ss.str(),current_line);
+    return Token(TokenKind::STRING,std::move(ss.str()),current_line);
 }
 
 Token Lexer::get_token(){
-
     while(isspace(src[current_char])){
         if(src[current_char]=='\n') current_line++; 
         current_char++;
@@ -104,19 +99,19 @@ Token Lexer::get_token(){
                      if (src[current_char]!='/' ){return Token(TokenKind::SLASH,current_line);}
                      current_char++;
                      while(src[current_char]!='\n'&& current_char < src.length()) {current_char++;}
-
+                     break;
                  }
         case '=':{
                      current_char++;
                      if (src[current_char]!='=' ){return Token(TokenKind::EQUAL,current_line);}
                      current_char++;
-                     {return Token(TokenKind::EQUAL_EQUAL,current_line);}
+                     return Token(TokenKind::EQUAL_EQUAL,current_line);
                  }
         case '!':{
                      current_char++;
                      if (src[current_char]!='=' ){return Token(TokenKind::BANG,current_line);}
                      current_char++;
-                     {return Token(TokenKind::BANG_EQUAL,current_line);}
+                     return Token(TokenKind::BANG_EQUAL,current_line);
                  }
         default: break;
     };

@@ -51,7 +51,7 @@ struct Token {
     std::string value;
     std::uint16_t line;
 
-    Token(TokenKind kind, std::string value,std::uint16_t line) : kind(kind), value(value),line(line) {}
+    Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), value(value),line(line) {}
     Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
 
     //friend std::ostream &operator<<(std::ostream &os, const Token token);
@@ -71,7 +71,6 @@ class Lexer {
         Token tokenize_numeric();
         Token tokenize_string();
         Token get_token();
-        void tokenize_comment();
 
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
