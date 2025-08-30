@@ -2,6 +2,7 @@
 #define  LEXER_H
 
 #include <string>
+#include <sstream>
 #include <unordered_map>
 
 enum class TokenKind {
@@ -59,21 +60,139 @@ struct Token {
 
 //std::ostream &operator<<(std::ostream &os, const Token token);
 
-class Lexer {
-    private:
-        std::uint16_t current_char;
-        std::uint16_t current_line;
-        std::string src;
-
+template<typename T> class Lexer {
     public:
-        Lexer(std::string src):src(src),current_char(0),current_line(0){}
+        Lexer(T&& source):src(source),iter(src.begin()),end(src.end()),current_line(0){}
         Token tokenize_ident();
         Token tokenize_numeric();
         Token tokenize_string();
         Token get_token();
 
+    private:
+        T src;
+        T::iterator iter,end;
+        std::uint16_t current_line;
+
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
+
+template<typename T>
+const std::unordered_map<std::string,TokenKind> Lexer<T>::key_words={
+    {std::string("class"),TokenKind::CLASS},
+    {std::string("and") ,TokenKind::AND},
+    {std::string("else") ,TokenKind::ELSE},
+    {std::string("false") ,TokenKind::FALSE},
+    {std::string("fun") ,TokenKind::FUN},
+    {std::string("for") ,TokenKind::FOR},
+    {std::string("if") ,TokenKind::IF},
+    {std::string("nil") ,TokenKind::NIL},
+    {std::string("or") ,TokenKind::OR},
+    {std::string("return") ,TokenKind::RETURN},
+    {std::string("super") ,TokenKind::SUPER},
+    {std::string("this") ,TokenKind::THIS},
+    {std::string("true") ,TokenKind::TRUE},
+    {std::string("var") ,TokenKind::VAR},
+    {std::string("while") ,TokenKind::WHILE},
+};
+
+template<typename T> Token Lexer<T>::tokenize_ident(){
+    std::stringstream ss;
+    while(iter!=end && std::isalnum(*iter)){
+        ss<<*iter;
+        iter++;
+    }
+
+    auto word=std::move(ss.str());
+    auto tkind_ptr=Lexer::key_words.find(word);
+    if(tkind_ptr==Lexer::key_words.end())
+        return Token(TokenKind::IDENTIFIER,std::move(word),current_line);
+    return Token(tkind_ptr->second,current_line);
+}
+
+template<typename T> Token Lexer<T>::tokenize_numeric(){
+    std::stringstream ss;
+    TokenKind tkind=TokenKind::INT;
+    bool digit_pt=false;
+    while(iter!=end && (std::isdigit(*iter) || *iter=='.')) {
+        if (*iter=='.'){
+            if (digit_pt) {
+                break;
+            }
+            else{
+                digit_pt=true;
+                tkind=TokenKind::NUMBER;
+                ss<<*iter;
+            }
+        }
+        else{
+            ss<<*iter;
+        }
+        iter++;
+    }
+    return Token(tkind,std::move(ss.str()),current_line);
+}
+
+template<typename T> Token Lexer<T>::tokenize_string(){
+    std::stringstream ss;
+    while(iter!=end && *iter!='"') {
+        ss<<*iter;
+        iter++;
+    };
+    iter++;
+    return Token(TokenKind::STRING,std::move(ss.str()),current_line);
+}
+
+template<typename T> Token Lexer<T>::get_token(){
+    while(iter!=end && isspace(*iter) ){
+        if(*iter=='\n') current_line++; 
+        iter++;
+    };
+
+    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    switch(*iter){
+        case '(':{iter++;return Token(TokenKind::LEFT_PAREN,current_line);}
+        case ')':{iter++;return Token(TokenKind::RIGHT_PAREN,current_line);}
+        case '[':{iter++;return Token(TokenKind::LEFT_BRACE,current_line);}
+        case ']':{iter++;return Token(TokenKind::RIGHT_BRACE,current_line);}
+        case ',':{iter++;return Token(TokenKind::COMMA,current_line);}
+        case ';':{iter++;return Token(TokenKind::SEMICOLON,current_line);}
+        case '.':{iter++;return Token(TokenKind::DOT,current_line);}
+        case '+':{iter++;return Token(TokenKind::PLUS,current_line);}
+        case '-':{iter++;return Token(TokenKind::MINUS,current_line);}
+        case '*':{iter++;return Token(TokenKind::STAR,current_line);}
+        case '"':{iter++;return tokenize_string();}
+        case '/':{
+                     iter++;
+                     if (iter ==end || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
+                     iter++;
+                     while( iter !=end && *iter!='\n' ) {iter++;}
+                     break;
+                 }
+        case '=':{
+                     iter++;
+                     if (iter ==end || *iter!='=' ){return Token(TokenKind::EQUAL,current_line);}
+                     iter++;
+                     return Token(TokenKind::EQUAL_EQUAL,current_line);
+                 }
+        case '!':{
+                     iter++;
+                     if (iter ==end || *iter!='=' ){return Token(TokenKind::BANG,current_line);}
+                     iter++;
+                     return Token(TokenKind::BANG_EQUAL,current_line);
+                 }
+        default: break;
+    };
+
+    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    if(std::isalpha(*iter)){
+        return tokenize_ident();
+    }
+
+    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    if(std::isdigit(*iter)){
+        return tokenize_numeric();
+    }
+}
 
 //std::ostream &operator<<(std::ostream &os, const Token token) {
 //    switch (token.kind) {

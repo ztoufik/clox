@@ -1,3 +1,4 @@
+#include <string>
 #include <gtest/gtest.h>
 
 #include "lexer.h"
@@ -9,11 +10,11 @@ class LexerFixture : public ::testing::TestWithParam<std::tuple<std::string, Tok
 };
 // Define the test case using TEST_P
 TEST_P(LexerFixture, Tokens) {
-    auto src = std::get<0>(GetParam());
+    std::string src = std::get<0>(GetParam());
     auto expected_token = std::get<1>(GetParam());
 
 
-    auto lexer=Lexer(src);
+    auto lexer=Lexer<std::string>(std::move(src));
     auto token=lexer.get_token();
     ASSERT_EQ(expected_token.kind, token.kind);
     ASSERT_EQ(expected_token.value, token.value); 
