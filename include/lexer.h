@@ -2,8 +2,13 @@
 #define  LEXER_H
 
 #include <string>
+#include <expected>
 #include <sstream>
 #include <unordered_map>
+
+struct TokenError{
+    std::string msg;
+};
 
 enum class TokenKind {
     Eof ,
@@ -66,7 +71,7 @@ template<typename T> class Lexer {
         Token tokenize_ident();
         Token tokenize_numeric();
         Token tokenize_string();
-        Token get_token();
+        std::expected<Token,TokenError> get_token();
 
     private:
         T src;
@@ -142,7 +147,7 @@ template<typename T> Token Lexer<T>::tokenize_string(){
     return Token(TokenKind::STRING,std::move(ss.str()),current_line);
 }
 
-template<typename T> Token Lexer<T>::get_token(){
+template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
     while(iter!=end && isspace(*iter) ){
         if(*iter=='\n') current_line++; 
         iter++;
@@ -192,6 +197,7 @@ template<typename T> Token Lexer<T>::get_token(){
     if(std::isdigit(*iter)){
         return tokenize_numeric();
     }
+    return std::unexpected(TokenError{.msg = "unrecognized char"});
 }
 
 //std::ostream &operator<<(std::ostream &os, const Token token) {

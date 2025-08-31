@@ -16,9 +16,15 @@ TEST_P(LexerFixture, Tokens) {
 
     auto lexer=Lexer<std::string>(std::move(src));
     auto token=lexer.get_token();
-    ASSERT_EQ(expected_token.kind, token.kind);
-    ASSERT_EQ(expected_token.value, token.value); 
-    ASSERT_EQ(expected_token.line, token.line);
+    if(token){
+        ASSERT_EQ(expected_token.kind, (*token).kind);
+        ASSERT_EQ(expected_token.value, (*token).value); 
+        ASSERT_EQ(expected_token.line, (*token).line);
+    }
+    else {
+        throw std::exception("token error");
+    }
+
 }
 
 INSTANTIATE_TEST_SUITE_P(
