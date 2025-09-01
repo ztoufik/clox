@@ -14,6 +14,8 @@ enum class TokenKind {
     Eof ,
     LEFT_PAREN,
     RIGHT_PAREN,
+    LEFT_BRACKET,
+    RIGHT_BRACKET,
     LEFT_BRACE,
     RIGHT_BRACE,
     COMMA,
@@ -157,8 +159,10 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
     switch(*iter){
         case '(':{iter++;return Token(TokenKind::LEFT_PAREN,current_line);}
         case ')':{iter++;return Token(TokenKind::RIGHT_PAREN,current_line);}
-        case '[':{iter++;return Token(TokenKind::LEFT_BRACE,current_line);}
-        case ']':{iter++;return Token(TokenKind::RIGHT_BRACE,current_line);}
+        case '[':{iter++;return Token(TokenKind::LEFT_BRACKET,current_line);}
+        case ']':{iter++;return Token(TokenKind::RIGHT_BRACKET,current_line);}
+        case '{':{iter++;return Token(TokenKind::LEFT_BRACE,current_line);}
+        case '}':{iter++;return Token(TokenKind::RIGHT_BRACE,current_line);}
         case ',':{iter++;return Token(TokenKind::COMMA,current_line);}
         case ';':{iter++;return Token(TokenKind::SEMICOLON,current_line);}
         case '.':{iter++;return Token(TokenKind::DOT,current_line);}
