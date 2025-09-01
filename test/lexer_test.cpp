@@ -5,6 +5,34 @@
 
 
 
+TEST(Testtokenizer, simple_mono_token) {
+    auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=");
+    auto tokens=std::vector{
+            Token(TokenKind::LEFT_PAREN,0),
+            Token(TokenKind::RIGHT_PAREN,0),
+            Token(TokenKind::LEFT_BRACE,0),
+            Token(TokenKind::RIGHT_BRACE,0),
+            Token(TokenKind::LEFT_BRACKET,0),
+            Token(TokenKind::RIGHT_BRACKET,0),
+            Token(TokenKind::COMMA,0),
+            Token(TokenKind::DOT,0),
+            Token(TokenKind::SEMICOLON,0),
+            Token(TokenKind::STAR,0),
+            Token(TokenKind::SLASH,0),
+            Token(TokenKind::PLUS,0),
+            Token(TokenKind::MINUS,0),
+            Token(TokenKind::EQUAL_EQUAL,0),
+            Token(TokenKind::EQUAL,0),
+            Token(TokenKind::BANG,0),
+            Token(TokenKind::BANG_EQUAL,0),
+    };
+    for(const auto& expected_token: tokens){
+        auto token=lexer.get_token();
+        EXPECT_EQ(expected_token,token);
+    }
+
+}
+
 // Define a test fixture class
 class LexerFixture : public ::testing::TestWithParam<std::tuple<std::string, Token>> {
 };
@@ -25,29 +53,13 @@ TEST_P(LexerFixture, Tokens) {
 
 }
 
+
 INSTANTIATE_TEST_SUITE_P(
         MonocharToken,
         LexerFixture,
         ::testing::Values(
             std::tuple(std::string(""),Token(TokenKind::Eof,0)),
-            std::tuple(std::string("\n"),Token(TokenKind::Eof,1)),
-            std::tuple(std::string(")"),Token(TokenKind::RIGHT_PAREN,0)),
-            std::tuple(std::string("("),Token(TokenKind::LEFT_PAREN,0)),
-            std::tuple(std::string("{"),Token(TokenKind::LEFT_BRACE,0)),
-            std::tuple(std::string("}"),Token(TokenKind::RIGHT_BRACE,0)),
-            std::tuple(std::string("["),Token(TokenKind::LEFT_BRACKET,0)),
-            std::tuple(std::string("]"),Token(TokenKind::RIGHT_BRACKET,0)),
-            std::tuple(std::string(","),Token(TokenKind::COMMA,0)),
-            std::tuple(std::string("."),Token(TokenKind::DOT,0)),
-            std::tuple(std::string(";"),Token(TokenKind::SEMICOLON,0)),
-            std::tuple(std::string("*"),Token(TokenKind::STAR,0)),
-            std::tuple(std::string("/"),Token(TokenKind::SLASH,0)),
-            std::tuple(std::string("+"),Token(TokenKind::PLUS,0)),
-            std::tuple(std::string("-"),Token(TokenKind::MINUS,0)),
-            std::tuple(std::string("="),Token(TokenKind::EQUAL,0)),
-            std::tuple(std::string("=="),Token(TokenKind::EQUAL_EQUAL,0)),
-            std::tuple(std::string("!"),Token(TokenKind::BANG,0)),
-            std::tuple(std::string("!="),Token(TokenKind::BANG_EQUAL,0))
+            std::tuple(std::string("\n"),Token(TokenKind::Eof,1))
             )
         );
 
