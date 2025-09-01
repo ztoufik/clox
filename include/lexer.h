@@ -62,6 +62,13 @@ struct Token {
     Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), value(value),line(line) {}
     Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
 
+    friend bool operator==(const Token Rhs, const Token Lhs){
+        return Rhs.kind==Lhs.kind && Rhs.value==Lhs.value && Rhs.line==Lhs.line;
+    }
+     
+    friend bool operator!=(const Token Rhs, const Token Lhs){
+        return Rhs != Lhs;
+    }
 };
 
 template<typename T> class Lexer {
