@@ -62,26 +62,24 @@ struct Token {
     Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), value(value),line(line) {}
     Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
 
-    //friend std::ostream &operator<<(std::ostream &os, const Token token);
 };
-
-//std::ostream &operator<<(std::ostream &os, const Token token);
 
 template<typename T> class Lexer {
     public:
-        Lexer(T&& source):src(source),iter(src.begin()),end(src.end()),current_line(0){}
-        Token tokenize_ident();
-        Token tokenize_numeric();
-        Token tokenize_string();
+        Lexer(T&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
         std::expected<Token,TokenError> get_token();
 
     private:
         T src;
-        T::iterator iter,end;
+        T::iterator iter,iter_end;
         std::uint16_t current_line;
 
         inline constexpr void consume(); 
         constexpr bool at_end() const noexcept;
+        Token tokenize_ident();
+        Token tokenize_numeric();
+        Token tokenize_string();
+
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
 
@@ -109,12 +107,12 @@ template<typename T> constexpr void Lexer<T>::consume(){
 }
 
 template<typename T> constexpr bool Lexer<T>::at_end() const noexcept{
-    return iter==end;
+    return iter==iter_end;
 }
 
 template<typename T> Token Lexer<T>::tokenize_ident(){
     std::stringstream ss;
-    while(iter!=end && std::isalnum(*iter)){
+    while(iter!=iter_end && std::isalnum(*iter)){
         ss<<*iter;
         iter++;
     }
@@ -130,7 +128,7 @@ template<typename T> Token Lexer<T>::tokenize_numeric(){
     std::stringstream ss;
     TokenKind tkind=TokenKind::INT;
     bool digit_pt=false;
-    while(iter!=end && (std::isdigit(*iter) || *iter=='.')) {
+    while(iter!=iter_end && (std::isdigit(*iter) || *iter=='.')) {
         if (*iter=='.'){
             if (digit_pt) {
                 break;
@@ -151,7 +149,7 @@ template<typename T> Token Lexer<T>::tokenize_numeric(){
 
 template<typename T> Token Lexer<T>::tokenize_string(){
     std::stringstream ss;
-    while(iter!=end && *iter!='"') {
+    while(iter!=iter_end && *iter!='"') {
         ss<<*iter;
         iter++;
     };
@@ -160,12 +158,12 @@ template<typename T> Token Lexer<T>::tokenize_string(){
 }
 
 template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
-    while(iter!=end && isspace(*iter) ){
+    while(iter!=iter_end && isspace(*iter) ){
         if(*iter=='\n') current_line++; 
         consume();
     };
 
-    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
     switch(*iter){
         case '(':{consume();return Token(TokenKind::LEFT_PAREN,current_line);}
         case ')':{consume();return Token(TokenKind::RIGHT_PAREN,current_line);}
@@ -184,7 +182,7 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
                      consume();
                      if (at_end() || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
                      consume();
-                     while( iter !=end && *iter!='\n' ) {consume();}
+                     while( iter !=iter_end && *iter!='\n' ) {consume();}
                      break;
                  }
         case '=':{
@@ -202,32 +200,15 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
         default: break;
     };
 
-    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
     if(std::isalpha(*iter)){
         return tokenize_ident();
     }
 
-    if(iter==end) { return Token(TokenKind::Eof,current_line);}
+    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
     if(std::isdigit(*iter)){
         return tokenize_numeric();
     }
     return std::unexpected(TokenError{.msg = "unrecognized char"});
 }
-
-//std::ostream &operator<<(std::ostream &os, const Token token) {
-//    switch (token.kind) {
-//        case TokenKind::Eof: {
-//                                 os << "EOF" << std::endl;
-//                                 break;
-//                             }
-//        case TokenKind::Identifier:
-//        case TokenKind::Number: {
-//                                    os << "identifier: " << token.value << std::endl;
-//                                    break;
-//                                }
-//    }
-//    return os;
-//}
-//
-
 #endif
