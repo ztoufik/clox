@@ -80,6 +80,8 @@ template<typename T> class Lexer {
         T::iterator iter,end;
         std::uint16_t current_line;
 
+        inline constexpr void consume(); 
+        constexpr bool at_end() const noexcept;
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
 
@@ -101,6 +103,14 @@ const std::unordered_map<std::string,TokenKind> Lexer<T>::key_words={
     {std::string("var") ,TokenKind::VAR},
     {std::string("while") ,TokenKind::WHILE},
 };
+
+template<typename T> constexpr void Lexer<T>::consume(){
+    iter++;
+}
+
+template<typename T> constexpr bool Lexer<T>::at_end() const noexcept{
+    return iter==end;
+}
 
 template<typename T> Token Lexer<T>::tokenize_ident(){
     std::stringstream ss;
@@ -152,41 +162,41 @@ template<typename T> Token Lexer<T>::tokenize_string(){
 template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
     while(iter!=end && isspace(*iter) ){
         if(*iter=='\n') current_line++; 
-        iter++;
+        consume();
     };
 
     if(iter==end) { return Token(TokenKind::Eof,current_line);}
     switch(*iter){
-        case '(':{iter++;return Token(TokenKind::LEFT_PAREN,current_line);}
-        case ')':{iter++;return Token(TokenKind::RIGHT_PAREN,current_line);}
-        case '[':{iter++;return Token(TokenKind::LEFT_BRACKET,current_line);}
-        case ']':{iter++;return Token(TokenKind::RIGHT_BRACKET,current_line);}
-        case '{':{iter++;return Token(TokenKind::LEFT_BRACE,current_line);}
-        case '}':{iter++;return Token(TokenKind::RIGHT_BRACE,current_line);}
-        case ',':{iter++;return Token(TokenKind::COMMA,current_line);}
-        case ';':{iter++;return Token(TokenKind::SEMICOLON,current_line);}
-        case '.':{iter++;return Token(TokenKind::DOT,current_line);}
-        case '+':{iter++;return Token(TokenKind::PLUS,current_line);}
-        case '-':{iter++;return Token(TokenKind::MINUS,current_line);}
-        case '*':{iter++;return Token(TokenKind::STAR,current_line);}
-        case '"':{iter++;return tokenize_string();}
+        case '(':{consume();return Token(TokenKind::LEFT_PAREN,current_line);}
+        case ')':{consume();return Token(TokenKind::RIGHT_PAREN,current_line);}
+        case '[':{consume();return Token(TokenKind::LEFT_BRACKET,current_line);}
+        case ']':{consume();return Token(TokenKind::RIGHT_BRACKET,current_line);}
+        case '{':{consume();return Token(TokenKind::LEFT_BRACE,current_line);}
+        case '}':{consume();return Token(TokenKind::RIGHT_BRACE,current_line);}
+        case ',':{consume();return Token(TokenKind::COMMA,current_line);}
+        case ';':{consume();return Token(TokenKind::SEMICOLON,current_line);}
+        case '.':{consume();return Token(TokenKind::DOT,current_line);}
+        case '+':{consume();return Token(TokenKind::PLUS,current_line);}
+        case '-':{consume();return Token(TokenKind::MINUS,current_line);}
+        case '*':{consume();return Token(TokenKind::STAR,current_line);}
+        case '"':{consume();return tokenize_string();}
         case '/':{
-                     iter++;
-                     if (iter ==end || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
-                     iter++;
-                     while( iter !=end && *iter!='\n' ) {iter++;}
+                     consume();
+                     if (at_end() || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
+                     consume();
+                     while( iter !=end && *iter!='\n' ) {consume();}
                      break;
                  }
         case '=':{
-                     iter++;
-                     if (iter ==end || *iter!='=' ){return Token(TokenKind::EQUAL,current_line);}
-                     iter++;
+                     consume();
+                     if (at_end() || *iter!='=' ){return Token(TokenKind::EQUAL,current_line);}
+                     consume();
                      return Token(TokenKind::EQUAL_EQUAL,current_line);
                  }
         case '!':{
-                     iter++;
-                     if (iter ==end || *iter!='=' ){return Token(TokenKind::BANG,current_line);}
-                     iter++;
+                     consume();
+                     if (at_end() || *iter!='=' ){return Token(TokenKind::BANG,current_line);}
+                     consume();
                      return Token(TokenKind::BANG_EQUAL,current_line);
                  }
         default: break;
