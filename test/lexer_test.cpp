@@ -50,7 +50,6 @@ TEST_P(LexerFixture, Tokens) {
     else {
         throw std::exception("token error");
     }
-
 }
 
 

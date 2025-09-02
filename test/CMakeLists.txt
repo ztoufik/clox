@@ -11,19 +11,21 @@ FetchContent_MakeAvailable(gtest)
 
 file(GLOB SOURCES *.cpp)
 
-add_executable(
-    lexer_unit_tests
-    ${SOURCES}
-    )
+add_executable( lexer_unit_tests "lexer_test.cpp")
+target_link_libraries(lexer_unit_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
-target_link_libraries(lexer_unit_tests
-  PRIVATE
-    ${PROJECT_NAME}
-    GTest::gtest_main
-  )
+add_executable(parser_unit_tests "parser_test.cpp")
+target_link_libraries(parser_unit_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
 # automatic discovery of unit tests
 include(GoogleTest)
+gtest_discover_tests(parser_unit_tests
+  PROPERTIES
+    LABELS "unit"
+  DISCOVERY_TIMEOUT  # how long to wait (in seconds) before crashing
+    240
+  )
+
 gtest_discover_tests(lexer_unit_tests
   PROPERTIES
     LABELS "unit"
