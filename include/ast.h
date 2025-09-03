@@ -11,13 +11,13 @@ struct Stmt{
 };
 
 struct Expr:Stmt{
-
+    virtual ~Expr(){}
 };
 
 template<typename T> struct Literal:Expr{
     Literal(T value):value(value){}
-    bool operator==(const Literal<T>& lhs){return this->value==lhs.value;} const
     T value;
+    bool operator==(const Literal<T>& lhs)const noexcept {return value==lhs.value;}
 };
 
 using Double=Literal<double>;
