@@ -8,7 +8,7 @@
 
 #include"lexer.h"
 #include"ast.h"
- 
+
 
 template<typename T>class Parser{
     public:
@@ -44,30 +44,30 @@ template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token()
 }
 
 template<typename T>  std::expected<std::unique_ptr<Int>,std::string> Parser<T>::parse_int(){
-        double value=std::atoi(current_token.value().lexeme.c_str());
-        auto rslt=std::move(consume_token());
-        if(rslt){
-            return std::make_unique<Int>(value);
-        }
-        return std::unexpected(rslt.error());
+    double value=std::atoi(current_token.value().lexeme.c_str());
+    auto rslt=std::move(consume_token());
+    if(rslt){
+        return std::make_unique<Int>(value);
+    }
+    return std::unexpected(rslt.error());
 }
 
 template<typename T>  std::expected<std::unique_ptr<Double>,std::string> Parser<T>::parse_double(){
-        double value=std::stod(current_token.value().lexeme.c_str());
-        auto rslt=std::move(consume_token());
-        if(rslt){
-            return std::make_unique<Double>(value);
-        }
-        return std::unexpected(rslt.error());
+    double value=std::stod(current_token.value().lexeme.c_str());
+    auto rslt=std::move(consume_token());
+    if(rslt){
+        return std::make_unique<Double>(value);
+    }
+    return std::unexpected(rslt.error());
 }
 
 template<typename T>  std::expected<std::unique_ptr<Str>,std::string> Parser<T>::parse_str(){
-        auto value=current_token.value().lexeme.c_str();
-        auto rslt=std::move(consume_token());
-        if(rslt){
-            return std::make_unique<Str>(value);
-        }
-        return std::unexpected(rslt.error());
+    auto value=current_token.value().lexeme.c_str();
+    auto rslt=std::move(consume_token());
+    if(rslt){
+        return std::make_unique<Str>(value);
+    }
+    return std::unexpected(rslt.error());
 }
 
 template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
@@ -87,7 +87,18 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
                                         break;
                                     }
             case TokenKind::INT: {
-                                        auto rslt=std::move(parse_int());
+                                     auto rslt=std::move(parse_int());
+                                     if (rslt){
+                                         stmt=std::move(rslt.value());
+                                     }
+                                     else{
+                                         return std::unexpected(rslt.error());
+                                     }
+                                     break;
+                                 }
+
+            case TokenKind::STRING: {
+                                        auto rslt=std::move(parse_str());
                                         if (rslt){
                                             stmt=std::move(rslt.value());
                                         }
@@ -96,11 +107,11 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
                                         }
                                         break;
                                     }
-        default: return std::unexpected("implemented");
+            default: return std::unexpected("implemented");
         };
+        stmts.push_back(std::move(stmt));
     };
 
-    stmts.push_back(std::move(stmt));
     return std::move(Program(std::move(stmts)));
 }
 
