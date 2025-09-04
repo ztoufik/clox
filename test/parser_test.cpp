@@ -8,6 +8,7 @@
 //Define a test fixture class
 class IntParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
 };
+ 
 // Define the test case using TEST_P
 TEST_P(IntParseFixt, Tokens) {
     auto expected_ast_node = std::get<1>(GetParam());
