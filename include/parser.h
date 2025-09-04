@@ -18,7 +18,7 @@ template<typename T>class Parser{
         bool at_end() const noexcept;
         bool match_token_kind(Token& token, TokenKind kind) const noexcept;
         std::expected<bool,std::string> consume_token();
-        std::expected<std::unique_ptr<Double>,std::string> parse_double();
+        std::expected<std::unique_ptr<Int>,std::string> parse_int();
         Lexer<T> _lexer;
         std::optional<Token> current_token;
 };
@@ -41,11 +41,11 @@ template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token()
     return std::unexpected("end of tokens stream reached");
 }
 
-template<typename T>  std::expected<std::unique_ptr<Double>,std::string> Parser<T>::parse_double(){
+template<typename T>  std::expected<std::unique_ptr<Int>,std::string> Parser<T>::parse_int(){
         double value=std::atoi(current_token.value().lexeme.c_str());
         auto rslt=std::move(consume_token());
         if(rslt){
-            return std::make_unique<Double>(value);
+            return std::make_unique<Int>(value);
         }
         return std::unexpected(rslt.error());
 }
@@ -56,8 +56,18 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
 
     while(!at_end()){
         switch(current_token.value().kind){
+            case TokenKind::NUMBER: {
+                                        auto rslt=std::move(parse_int());
+                                        if (rslt){
+                                            stmt=std::move(rslt.value());
+                                        }
+                                        else{
+                                            return std::unexpected(rslt.error());
+                                        }
+                                        break;
+                                    }
             case TokenKind::INT: {
-                                        auto rslt=std::move(parse_double());
+                                        auto rslt=std::move(parse_int());
                                         if (rslt){
                                             stmt=std::move(rslt.value());
                                         }
