@@ -56,14 +56,18 @@ enum class TokenKind {
 
 struct Token {
     TokenKind kind;
-    std::string value;
+    std::string lexeme;
     std::uint16_t line;
 
-    Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), value(value),line(line) {}
-    Token(TokenKind kind,std::uint16_t line) : kind(kind),value(""),line(line){}
+    Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), lexeme(value),line(line) {}
+    Token(TokenKind kind,std::uint16_t line) : kind(kind),lexeme(""),line(line){}
+    Token(const Token&)=default;
+    Token(Token&&)=default;
+    Token& operator=(const Token&)=default;
+    Token& operator=(Token&&)=default;
 
     friend bool operator==(const Token Rhs, const Token Lhs){
-        return Rhs.kind==Lhs.kind && Rhs.value==Lhs.value && Rhs.line==Lhs.line;
+        return Rhs.kind==Lhs.kind && Rhs.lexeme==Lhs.lexeme && Rhs.line==Lhs.line;
     }
      
     friend bool operator!=(const Token Rhs, const Token Lhs){

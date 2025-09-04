@@ -10,12 +10,20 @@ struct Stmt{
     virtual ~Stmt(){}
 };
 
+struct Assign:Stmt{
+    virtual ~Assign(){}
+};
+
 struct Expr:Stmt{
     virtual ~Expr(){}
 };
 
 template<typename T> struct Literal:Expr{
     Literal(T value):value(value){}
+    Literal(const Literal&)=default;
+    Literal(Literal&&)=default;
+    Literal& operator=(const Literal&)=default;
+    Literal& operator=(Literal&&)=default;
     T value;
     bool operator==(const Literal<T>& lhs)const noexcept {return value==lhs.value;}
 };
