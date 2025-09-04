@@ -5,11 +5,11 @@
 #include "lexer.h"
 #include "parser.h"
 
-// Define a test fixture class
-class ParserFixture : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
+//Define a test fixture class
+class IntParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
 };
 // Define the test case using TEST_P
-TEST_P(ParserFixture, Tokens) {
+TEST_P(IntParseFixt, Tokens) {
     auto expected_ast_node = std::get<1>(GetParam());
 
     auto src = std::get<0>(GetParam());
@@ -25,10 +25,9 @@ TEST_P(ParserFixture, Tokens) {
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
 
-
 INSTANTIATE_TEST_SUITE_P(
-        Literals,
-        ParserFixture,
+        Int,
+        IntParseFixt,
         ::testing::Values(
             std::tuple(std::string_view("0"),Int(0)),
             std::tuple(std::string_view("1"),Int(1)),
@@ -46,5 +45,47 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string_view("999"),Int(999)),
             std::tuple(std::string_view("1234"),Int(1234)),
             std::tuple(std::string_view("9999"),Int(9999))
+            )
+        );
+
+class DoubleParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Double>> {
+};
+// Define the test case using TEST_P
+TEST_P(DoubleParseFixt, Tokens) {
+    auto expected_ast_node = std::get<1>(GetParam());
+
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    auto parser=Parser(std::move(lexer));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=std::dynamic_pointer_cast<Double>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+    ASSERT_EQ(expected_ast_node,*ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        Double,
+        DoubleParseFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("0.0"),Double(0.0)),
+            std::tuple(std::string_view("1.1"),Double(1.1)),
+            std::tuple(std::string_view("2.2"),Double(2.2)),
+            std::tuple(std::string_view("3.3"),Double(3.3)),
+            std::tuple(std::string_view("4.4"),Double(4.4)),
+            std::tuple(std::string_view("5.5"),Double(5.5)),
+            std::tuple(std::string_view("6.6"),Double(6.6)),
+            std::tuple(std::string_view("7.7"),Double(7.7)),
+            std::tuple(std::string_view("8.8"),Double(8.8)),
+            std::tuple(std::string_view("9.9"),Double(9.9)),
+            std::tuple(std::string_view("1.100"),Double(1.100)),
+            std::tuple(std::string_view("1.155"),Double(1.155)),
+            std::tuple(std::string_view("1.10000"),Double(1.10000)),
+            std::tuple(std::string_view("9.99999"),Double(9.99999)),
+            std::tuple(std::string_view("1.1234234"),Double(1.1234234)),
+            std::tuple(std::string_view("9.9999999"),Double(9.9999999))
             )
         );

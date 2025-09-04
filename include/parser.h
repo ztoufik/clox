@@ -19,6 +19,8 @@ template<typename T>class Parser{
         bool match_token_kind(Token& token, TokenKind kind) const noexcept;
         std::expected<bool,std::string> consume_token();
         std::expected<std::unique_ptr<Int>,std::string> parse_int();
+        std::expected<std::unique_ptr<Double>,std::string> parse_double();
+        std::expected<std::unique_ptr<Str>,std::string> parse_str();
         Lexer<T> _lexer;
         std::optional<Token> current_token;
 };
@@ -50,6 +52,24 @@ template<typename T>  std::expected<std::unique_ptr<Int>,std::string> Parser<T>:
         return std::unexpected(rslt.error());
 }
 
+template<typename T>  std::expected<std::unique_ptr<Double>,std::string> Parser<T>::parse_double(){
+        double value=std::stod(current_token.value().lexeme.c_str());
+        auto rslt=std::move(consume_token());
+        if(rslt){
+            return std::make_unique<Double>(value);
+        }
+        return std::unexpected(rslt.error());
+}
+
+template<typename T>  std::expected<std::unique_ptr<Str>,std::string> Parser<T>::parse_str(){
+        auto value=current_token.value().lexeme.c_str();
+        auto rslt=std::move(consume_token());
+        if(rslt){
+            return std::make_unique<Str>(value);
+        }
+        return std::unexpected(rslt.error());
+}
+
 template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
     auto stmts=std::vector<std::shared_ptr<Stmt>>{};
     std::unique_ptr<Stmt> stmt;
@@ -57,7 +77,7 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
     while(!at_end()){
         switch(current_token.value().kind){
             case TokenKind::NUMBER: {
-                                        auto rslt=std::move(parse_int());
+                                        auto rslt=std::move(parse_double());
                                         if (rslt){
                                             stmt=std::move(rslt.value());
                                         }
@@ -76,7 +96,7 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
                                         }
                                         break;
                                     }
-                default: return std::unexpected("implemented");
+        default: return std::unexpected("implemented");
         };
     };
 

@@ -72,6 +72,8 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string("00001"),Token(TokenKind::INT,"00001",0)),
             std::tuple(std::string("0.1"),Token(TokenKind::NUMBER,"0.1",0)),
             std::tuple(std::string("0.2101"),Token(TokenKind::NUMBER,"0.2101",0)),
+            std::tuple(std::string("1.1"),Token(TokenKind::NUMBER,"1.1",0)),
+            std::tuple(std::string("13.3"),Token(TokenKind::NUMBER,"13.3",0)),
             std::tuple(std::string("\n0.1"),Token(TokenKind::NUMBER,"0.1",1)),
             std::tuple(std::string("\n\n0.2101"),Token(TokenKind::NUMBER,"0.2101",2))
 
