@@ -48,6 +48,30 @@ struct Div:public BinExpr{
     Div(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
 };
 
+struct Equality:public BinExpr{
+    Equality(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Less:public BinExpr{
+    Less(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Lesser:public BinExpr{
+    Lesser(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Greater:public BinExpr{
+    Greater(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Less_eq:public BinExpr{
+    Less_eq(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Great_eq:public BinExpr{
+    Great_eq(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
 struct Minus:UnaryExpr{
     Minus(Expr&& expr):UnaryExpr(std::move(expr)){}
 };
