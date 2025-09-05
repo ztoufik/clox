@@ -52,6 +52,9 @@ struct Minus:UnaryExpr{
     Minus(Expr&& expr):UnaryExpr(std::move(expr)){}
 };
 
+struct Negate:UnaryExpr{
+    Negate(Expr&& expr):UnaryExpr(std::move(expr)){}
+};
 
 template<typename T> struct Literal:Expr{
     Literal(T value):value(value){}
