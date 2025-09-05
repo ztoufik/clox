@@ -4,6 +4,8 @@
 #include "lexer.h"
 
 
+using namespace tua;
+
 
 TEST(Testtokenizer, simple_mono_token) {
     auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=");

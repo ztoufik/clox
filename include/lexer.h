@@ -6,6 +6,8 @@
 #include <sstream>
 #include <unordered_map>
 
+namespace tua{
+
 struct TokenError{
     std::string msg;
 };
@@ -222,4 +224,6 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
     }
     return std::unexpected(TokenError{.msg = "unrecognized char"});
 }
+
+};
 #endif

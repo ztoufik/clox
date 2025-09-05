@@ -9,6 +9,7 @@
 #include"lexer.h"
 #include"ast.h"
 
+namespace tua{
 
 template<typename T>class Parser{
     public:
@@ -62,7 +63,7 @@ template<typename T>  std::expected<std::unique_ptr<Double>,std::string> Parser<
 }
 
 template<typename T>  std::expected<std::unique_ptr<Str>,std::string> Parser<T>::parse_str(){
-    auto value=current_token.value().lexeme.c_str();
+    auto value=current_token.value().lexeme;
     auto rslt=std::move(consume_token());
     if(rslt){
         return std::make_unique<Str>(value);
@@ -86,6 +87,7 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
                                         }
                                         break;
                                     }
+
             case TokenKind::INT: {
                                      auto rslt=std::move(parse_int());
                                      if (rslt){
@@ -119,4 +121,5 @@ template<typename T> bool Parser<T>::at_end() const noexcept { return current_to
 
 template<typename T> bool Parser<T>::match_token_kind(Token& token, TokenKind kind) const noexcept { return token.kind==kind; }
 
+}
 #endif 
