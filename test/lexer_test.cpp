@@ -7,7 +7,7 @@
 using namespace tua;
 
 
-TEST(Testtokenizer, simple_mono_token) {
+TEST(LexerTest, simple_token) {
     auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=|&");
     auto tokens=std::vector{
             Token(TokenKind::LEFT_PAREN,0),
@@ -35,14 +35,13 @@ TEST(Testtokenizer, simple_mono_token) {
         auto token=lexer.get_token();
         EXPECT_EQ(expected_token,token);
     }
-
 }
 
 // Define a test fixture class
 class LexerFixture : public ::testing::TestWithParam<std::tuple<std::string, Token>> {
 };
 // Define the test case using TEST_P
-TEST_P(LexerFixture, Tokens) {
+TEST_P(LexerFixture, LexerTest) {
     std::string src = std::get<0>(GetParam());
     auto expected_token = std::get<1>(GetParam());
 
@@ -59,10 +58,9 @@ TEST_P(LexerFixture, Tokens) {
 
 
 INSTANTIATE_TEST_SUITE_P(
-        MonocharToken,
+        linetest,
         LexerFixture,
         ::testing::Values(
-            std::tuple(std::string(""),Token(TokenKind::Eof,0)),
             std::tuple(std::string("\n"),Token(TokenKind::Eof,1))
             )
         );

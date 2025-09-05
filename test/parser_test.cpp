@@ -8,11 +8,11 @@
 using namespace tua;
 
 //Define a test fixture class
-class IntParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
+class ParseIntFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
 };
  
 // Define the test case using TEST_P
-TEST_P(IntParseFixt, Tokens) {
+TEST_P(ParseIntFixt, ParserTest) {
     auto expected_ast_node = std::get<1>(GetParam());
 
     auto src = std::get<0>(GetParam());
@@ -29,8 +29,8 @@ TEST_P(IntParseFixt, Tokens) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-        Int,
-        IntParseFixt,
+        ParseIntTest,
+        ParseIntFixt,
         ::testing::Values(
             std::tuple(std::string_view("0"),Int(0)),
             std::tuple(std::string_view("1"),Int(1)),
@@ -51,10 +51,10 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
-class DoubleParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Double>> {
+class ParseDoubleFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Double>> {
 };
 // Define the test case using TEST_P
-TEST_P(DoubleParseFixt, Tokens) {
+TEST_P(ParseDoubleFixt, ParserTest) {
     auto expected_ast_node = std::get<1>(GetParam());
 
     auto src = std::get<0>(GetParam());
@@ -71,8 +71,8 @@ TEST_P(DoubleParseFixt, Tokens) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-        Double,
-        DoubleParseFixt,
+        ParseDouble,
+        ParseDoubleFixt,
         ::testing::Values(
             std::tuple(std::string_view("0.0"),Double(0.0)),
             std::tuple(std::string_view("1.1"),Double(1.1)),
@@ -93,10 +93,10 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
-class StrParseFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Str>> {
+class ParseStrFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Str>> {
 };
 // Define the test case using TEST_P
-TEST_P(StrParseFixt, Tokens) {
+TEST_P(ParseStrFixt, ParserTest) {
     auto expected_ast_node = std::get<1>(GetParam());
 
     auto src = std::get<0>(GetParam());
@@ -113,8 +113,8 @@ TEST_P(StrParseFixt, Tokens) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-        Str,
-        StrParseFixt,
+        ParseStr,
+        ParseStrFixt,
         ::testing::Values(
             std::tuple(std::string_view("\"0.0\""),Str("0.0")),
             std::tuple(std::string_view("\"1.1\""),Str("1.1")),
@@ -132,5 +132,34 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string_view("\"9.99999\""),Str("9.99999")),
             std::tuple(std::string_view("\"1.1234234\""),Str("1.1234234")),
             std::tuple(std::string_view("\"9.9999999\""),Str("9.9999999"))
+            )
+        );
+
+class ParseBoolFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Bool>> {
+};
+
+// Define the test case using TEST_P
+TEST_P(ParseBoolFixt, ParserTest) {
+    auto expected_ast_node = std::get<1>(GetParam());
+
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    auto parser=Parser(std::move(lexer));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=std::dynamic_pointer_cast<Bool>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+    ASSERT_EQ(expected_ast_node,*ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseBool,
+        ParseBoolFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("true"),Bool(true)),
+            std::tuple(std::string_view("false"),Bool(false))
             )
         );

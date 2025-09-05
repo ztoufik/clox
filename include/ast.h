@@ -101,6 +101,7 @@ template<typename T> struct Literal:Expr{
 using Double=Literal<double>;
 using Int=Literal<int>;
 using Str=Literal<std::string>;
+using Bool=Literal<bool>;
 
 using Stmts=std::vector<std::shared_ptr<Stmt>>;
 

@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include<print>
 #include<memory>
 #include<string>
 #include<vector>
@@ -22,6 +23,7 @@ template<typename T>class Parser{
         std::expected<std::unique_ptr<Int>,std::string> parse_int();
         std::expected<std::unique_ptr<Double>,std::string> parse_double();
         std::expected<std::unique_ptr<Str>,std::string> parse_str();
+        std::expected<std::unique_ptr<Bool>,std::string> parse_bool();
         Lexer<T> _lexer;
         std::optional<Token> current_token;
 };
@@ -58,6 +60,16 @@ template<typename T>  std::expected<std::unique_ptr<Double>,std::string> Parser<
     auto rslt=std::move(consume_token());
     if(rslt){
         return std::make_unique<Double>(value);
+    }
+    return std::unexpected(rslt.error());
+}
+
+template<typename T>  std::expected<std::unique_ptr<Bool>,std::string> Parser<T>::parse_bool(){
+    TokenKind tkind=current_token.value().kind;
+    bool value=(tkind==TokenKind::TRUE)?true:false;
+    auto rslt=std::move(consume_token());
+    if(rslt){
+        return std::make_unique<Bool>(value);
     }
     return std::unexpected(rslt.error());
 }
@@ -109,6 +121,19 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
                                         }
                                         break;
                                     }
+
+            case TokenKind::FALSE: 
+            case TokenKind::TRUE:{
+                                        auto rslt=std::move(parse_bool());
+                                        if (rslt){
+                                            stmt=std::move(rslt.value());
+                                        }
+                                        else{
+                                            return std::unexpected(rslt.error());
+                                        }
+                                        break;
+                                    }
+
             default: return std::unexpected("implemented");
         };
         stmts.push_back(std::move(stmt));
