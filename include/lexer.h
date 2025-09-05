@@ -14,46 +14,53 @@ struct TokenError{
 
 enum class TokenKind {
     Eof ,
+
     LEFT_PAREN,
     RIGHT_PAREN,
     LEFT_BRACKET,
     RIGHT_BRACKET,
     LEFT_BRACE,
     RIGHT_BRACE,
+
     COMMA,
     DOT,
-    MINUS,
-    PLUS,
     SEMICOLON,
     SLASH,
     STAR,
     BANG,
     EQUAL,
+
+    BIT_OR,
+    BIT_AND,
+    MINUS,
+    PLUS,
     GREATER,
     LESS,
     BANG_EQUAL,
     EQUAL_EQUAL,
     GREATER_EQUAL,
     LESS_EQUAL,
-    IDENTIFIER,
+
+    IDENT,
     STRING,
     INT,
-    NUMBER,
+    DOUBLE,
+
+    OR ,
     AND ,
     CLASS ,
-    ELSE ,
-    FALSE ,
-    FUN ,
-    FOR ,
-    IF ,
-    NIL ,
-    OR ,
-    RETURN ,
     SUPER ,
     THIS ,
+    FALSE ,
     TRUE ,
-    VAR ,
+    FOR ,
     WHILE ,
+    IF ,
+    ELSE ,
+    NIL ,
+    FUN ,
+    RETURN ,
+    VAR ,
 };
 
 struct Token {
@@ -133,7 +140,7 @@ template<typename T> Token Lexer<T>::tokenize_ident(){
     auto word=std::move(ss.str());
     auto tkind_ptr=Lexer::key_words.find(word);
     if(tkind_ptr==Lexer::key_words.end())
-        return Token(TokenKind::IDENTIFIER,std::move(word),current_line);
+        return Token(TokenKind::IDENT,std::move(word),current_line);
     return Token(tkind_ptr->second,current_line);
 }
 
@@ -148,7 +155,7 @@ template<typename T> Token Lexer<T>::tokenize_numeric(){
             }
             else{
                 digit_pt=true;
-                tkind=TokenKind::NUMBER;
+                tkind=TokenKind::DOUBLE;
                 ss<<*iter;
             }
         }
@@ -184,6 +191,8 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
         case ']':{consume();return Token(TokenKind::RIGHT_BRACKET,current_line);}
         case '{':{consume();return Token(TokenKind::LEFT_BRACE,current_line);}
         case '}':{consume();return Token(TokenKind::RIGHT_BRACE,current_line);}
+        case '|':{consume();return Token(TokenKind::BIT_OR,current_line);}
+        case '&':{consume();return Token(TokenKind::BIT_AND,current_line);}
         case ',':{consume();return Token(TokenKind::COMMA,current_line);}
         case ';':{consume();return Token(TokenKind::SEMICOLON,current_line);}
         case '.':{consume();return Token(TokenKind::DOT,current_line);}

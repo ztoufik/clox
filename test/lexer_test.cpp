@@ -8,7 +8,7 @@ using namespace tua;
 
 
 TEST(Testtokenizer, simple_mono_token) {
-    auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=");
+    auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=|&");
     auto tokens=std::vector{
             Token(TokenKind::LEFT_PAREN,0),
             Token(TokenKind::RIGHT_PAREN,0),
@@ -27,6 +27,9 @@ TEST(Testtokenizer, simple_mono_token) {
             Token(TokenKind::EQUAL,0),
             Token(TokenKind::BANG,0),
             Token(TokenKind::BANG_EQUAL,0),
+            Token(TokenKind::BIT_OR,0),
+            Token(TokenKind::BIT_AND,0),
+            Token(TokenKind::Eof,0),
     };
     for(const auto& expected_token: tokens){
         auto token=lexer.get_token();
@@ -72,12 +75,12 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string("33"),Token(TokenKind::INT,"33",0)),
             std::tuple(std::string("313"),Token(TokenKind::INT,"313",0)),
             std::tuple(std::string("00001"),Token(TokenKind::INT,"00001",0)),
-            std::tuple(std::string("0.1"),Token(TokenKind::NUMBER,"0.1",0)),
-            std::tuple(std::string("0.2101"),Token(TokenKind::NUMBER,"0.2101",0)),
-            std::tuple(std::string("1.1"),Token(TokenKind::NUMBER,"1.1",0)),
-            std::tuple(std::string("13.3"),Token(TokenKind::NUMBER,"13.3",0)),
-            std::tuple(std::string("\n0.1"),Token(TokenKind::NUMBER,"0.1",1)),
-            std::tuple(std::string("\n\n0.2101"),Token(TokenKind::NUMBER,"0.2101",2))
+            std::tuple(std::string("0.1"),Token(TokenKind::DOUBLE,"0.1",0)),
+            std::tuple(std::string("0.2101"),Token(TokenKind::DOUBLE,"0.2101",0)),
+            std::tuple(std::string("1.1"),Token(TokenKind::DOUBLE,"1.1",0)),
+            std::tuple(std::string("13.3"),Token(TokenKind::DOUBLE,"13.3",0)),
+            std::tuple(std::string("\n0.1"),Token(TokenKind::DOUBLE,"0.1",1)),
+            std::tuple(std::string("\n\n0.2101"),Token(TokenKind::DOUBLE,"0.2101",2))
 
             )
         );
@@ -95,7 +98,7 @@ INSTANTIATE_TEST_SUITE_P(
         identkeyword,
         LexerFixture,
         ::testing::Values(
-            std::tuple(std::string("toufik"),Token(TokenKind::IDENTIFIER,"toufik",0)),
+            std::tuple(std::string("toufik"),Token(TokenKind::IDENT,"toufik",0)),
             std::tuple(std::string("if"),Token(TokenKind::IF,0)),
             std::tuple(std::string("class"),Token(TokenKind::CLASS,0)),
             std::tuple(std::string("and") ,Token(TokenKind::AND,0)),

@@ -77,7 +77,7 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
 
     while(!at_end()){
         switch(current_token.value().kind){
-            case TokenKind::NUMBER: {
+            case TokenKind::DOUBLE: {
                                         auto rslt=std::move(parse_double());
                                         if (rslt){
                                             stmt=std::move(rslt.value());
