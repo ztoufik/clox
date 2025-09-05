@@ -18,6 +18,41 @@ struct Expr:Stmt{
     virtual ~Expr(){}
 };
 
+struct BinExpr:Expr{
+    protected:
+    BinExpr(Expr&& left,Expr&& right):left_(std::move(left)),right_(std::move(right)){}
+    virtual ~BinExpr(){}
+    Expr left_,right_;
+};
+
+struct UnaryExpr:Expr{
+    protected:
+        UnaryExpr(Expr&& expr):expr(std::move(expr)){}
+        virtual ~UnaryExpr(){}
+        Expr expr;
+};
+
+struct Add:public BinExpr{
+    Add(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Sub:public BinExpr{
+    Sub(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Mul:public BinExpr{
+    Mul(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Div:public BinExpr{
+    Div(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Minus:UnaryExpr{
+    Minus(Expr&& expr):UnaryExpr(std::move(expr)){}
+};
+
+
 template<typename T> struct Literal:Expr{
     Literal(T value):value(value){}
     Literal(const Literal&)=default;
