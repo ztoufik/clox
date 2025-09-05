@@ -72,6 +72,14 @@ struct Great_eq:public BinExpr{
     Great_eq(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
 };
 
+struct Bit_or:public BinExpr{
+    Bit_or(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
+struct Bit_and:public BinExpr{
+    Bit_and(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+};
+
 struct Minus:UnaryExpr{
     Minus(Expr&& expr):UnaryExpr(std::move(expr)){}
 };
