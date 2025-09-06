@@ -7,6 +7,7 @@
 
 using namespace tua;
 
+
 //Define a test fixture class
 class ParseIntFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Int>> {
 };
@@ -17,13 +18,13 @@ TEST_P(ParseIntFixt, ParserTest) {
 
     auto src = std::get<0>(GetParam());
     auto lexer=Lexer<std::string_view>(std::move(src));
-    auto parser=Parser(std::move(lexer));
+    Parser parser(std::move(lexer));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
-    Program program=rslt.value();
+    Program program=std::move(rslt.value());
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=std::dynamic_pointer_cast<Int>(stmt.at(0));
+    auto ast_node=dynamic_cast<Int*>(stmt.at(0).get());
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -59,13 +60,13 @@ TEST_P(ParseDoubleFixt, ParserTest) {
 
     auto src = std::get<0>(GetParam());
     auto lexer=Lexer<std::string_view>(std::move(src));
-    auto parser=Parser(std::move(lexer));
+    Parser parser(std::move(lexer));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
-    Program program=rslt.value();
+    Program program=std::move(rslt.value());
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=std::dynamic_pointer_cast<Double>(stmt.at(0));
+    auto ast_node=dynamic_cast<Double*>(stmt.at(0).get());
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -101,13 +102,13 @@ TEST_P(ParseStrFixt, ParserTest) {
 
     auto src = std::get<0>(GetParam());
     auto lexer=Lexer<std::string_view>(std::move(src));
-    auto parser=Parser(std::move(lexer));
+    Parser parser(std::move(lexer));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
-    Program program=rslt.value();
+    Program program=std::move(rslt.value());
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=std::dynamic_pointer_cast<Str>(stmt.at(0));
+    auto ast_node=dynamic_cast<Str*>(stmt.at(0).get());
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -144,13 +145,13 @@ TEST_P(ParseBoolFixt, ParserTest) {
 
     auto src = std::get<0>(GetParam());
     auto lexer=Lexer<std::string_view>(std::move(src));
-    auto parser=Parser(std::move(lexer));
+    Parser parser(Parser(std::move(lexer)));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
-    Program program=rslt.value();
+    Program program=std::move(rslt.value());
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=std::dynamic_pointer_cast<Bool>(stmt.at(0));
+    auto ast_node=dynamic_cast<Bool*>(stmt.at(0).get());
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }

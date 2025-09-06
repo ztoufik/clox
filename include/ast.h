@@ -103,7 +103,7 @@ using Int=Literal<int>;
 using Str=Literal<std::string>;
 using Bool=Literal<bool>;
 
-using Stmts=std::vector<std::shared_ptr<Stmt>>;
+using Stmts=std::vector<std::unique_ptr<Stmt>>;
 
 struct Program{
     Program(Stmts&& stmts):stmts(std::move(stmts)){}

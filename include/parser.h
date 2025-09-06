@@ -19,7 +19,7 @@ template<typename T>class Parser{
         bool at_end() const noexcept;
         bool match_token_kind(Token& token, TokenKind kind) const noexcept;
         std::expected<bool,std::string> consume_token();
-        std::expected<std::shared_ptr<Stmt>,std::string> parse_stmt();
+        std::expected<std::unique_ptr<Stmt>,std::string> parse_stmt();
         std::expected<Int,std::string> parse_int();
         std::expected<Double,std::string> parse_double();
         std::expected<Str,std::string> parse_str();
@@ -46,13 +46,13 @@ template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token()
     return std::unexpected("end of tokens stream reached");
 }
 
-template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>::parse_stmt(){
+template<typename T> std::expected<std::unique_ptr<Stmt>,std::string> Parser<T>::parse_stmt(){
     while(!at_end()){
         switch(current_token.value().kind){
             case TokenKind::DOUBLE: {
                                         auto rslt=parse_double();
                                         if (rslt){
-                                            return std::make_shared<Double>(rslt.value());
+                                            return std::make_unique<Double>(rslt.value());
                                         }
                                         else{
                                             return std::unexpected(rslt.error());
@@ -63,7 +63,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
             case TokenKind::INT: {
                                      auto rslt=parse_int();
                                      if (rslt){
-                                         return std::make_shared<Int>(rslt.value());
+                                         return std::make_unique<Int>(rslt.value());
                                      }
                                      else{
                                          return std::unexpected(rslt.error());
@@ -74,7 +74,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
             case TokenKind::STRING: {
                                         auto rslt=parse_str();
                                         if (rslt){
-                                            return std::make_shared<Str>(rslt.value());
+                                            return std::make_unique<Str>(rslt.value());
                                         }
                                         else{
                                             return std::unexpected(rslt.error());
@@ -86,7 +86,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
             case TokenKind::TRUE:{
                                      auto rslt=parse_bool();
                                      if (rslt){
-                                         return std::make_shared<Bool>(rslt.value());
+                                         return std::make_unique<Bool>(rslt.value());
                                      }
                                      else{
                                          return std::unexpected(rslt.error());
@@ -138,11 +138,11 @@ template<typename T>  std::expected<Str,std::string> Parser<T>::parse_str(){
 }
 
 template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
-    auto stmts=std::vector<std::shared_ptr<Stmt>>{};
+    auto stmts=std::vector<std::unique_ptr<Stmt>>{};
     while(!at_end()){
         auto stmt1=parse_stmt();
         if (stmt1){
-            stmts.push_back(stmt1.value());
+            stmts.push_back(std::move(stmt1.value()));
         }
         else{
             return std::unexpected(stmt1.error());
