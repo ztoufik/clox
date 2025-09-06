@@ -32,22 +32,22 @@ INSTANTIATE_TEST_SUITE_P(
         ParseIntTest,
         ParseIntFixt,
         ::testing::Values(
-            std::tuple(std::string_view("0"),Int(0)),
-            std::tuple(std::string_view("1"),Int(1)),
-            std::tuple(std::string_view("2"),Int(2)),
-            std::tuple(std::string_view("3"),Int(3)),
-            std::tuple(std::string_view("4"),Int(4)),
-            std::tuple(std::string_view("5"),Int(5)),
-            std::tuple(std::string_view("6"),Int(6)),
-            std::tuple(std::string_view("7"),Int(7)),
-            std::tuple(std::string_view("8"),Int(8)),
-            std::tuple(std::string_view("9"),Int(9)),
-            std::tuple(std::string_view("10"),Int(10)),
-            std::tuple(std::string_view("15"),Int(15)),
-            std::tuple(std::string_view("100"),Int(100)),
-            std::tuple(std::string_view("999"),Int(999)),
-            std::tuple(std::string_view("1234"),Int(1234)),
-            std::tuple(std::string_view("9999"),Int(9999))
+            std::tuple(std::string_view("0;"),Int(0)),
+            std::tuple(std::string_view("1;"),Int(1)),
+            std::tuple(std::string_view("2;"),Int(2)),
+            std::tuple(std::string_view("3;"),Int(3)),
+            std::tuple(std::string_view("4;"),Int(4)),
+            std::tuple(std::string_view("5;"),Int(5)),
+            std::tuple(std::string_view("6;"),Int(6)),
+            std::tuple(std::string_view("7;"),Int(7)),
+            std::tuple(std::string_view("8;"),Int(8)),
+            std::tuple(std::string_view("9;"),Int(9)),
+            std::tuple(std::string_view("10;"),Int(10)),
+            std::tuple(std::string_view("15;"),Int(15)),
+            std::tuple(std::string_view("100;"),Int(100)),
+            std::tuple(std::string_view("999;"),Int(999)),
+            std::tuple(std::string_view("1234;"),Int(1234)),
+            std::tuple(std::string_view("9999;"),Int(9999))
             )
         );
 
@@ -74,22 +74,22 @@ INSTANTIATE_TEST_SUITE_P(
         ParseDouble,
         ParseDoubleFixt,
         ::testing::Values(
-            std::tuple(std::string_view("0.0"),Double(0.0)),
-            std::tuple(std::string_view("1.1"),Double(1.1)),
-            std::tuple(std::string_view("2.2"),Double(2.2)),
-            std::tuple(std::string_view("3.3"),Double(3.3)),
-            std::tuple(std::string_view("4.4"),Double(4.4)),
-            std::tuple(std::string_view("5.5"),Double(5.5)),
-            std::tuple(std::string_view("6.6"),Double(6.6)),
-            std::tuple(std::string_view("7.7"),Double(7.7)),
-            std::tuple(std::string_view("8.8"),Double(8.8)),
-            std::tuple(std::string_view("9.9"),Double(9.9)),
-            std::tuple(std::string_view("1.100"),Double(1.100)),
-            std::tuple(std::string_view("1.155"),Double(1.155)),
-            std::tuple(std::string_view("1.10000"),Double(1.10000)),
-            std::tuple(std::string_view("9.99999"),Double(9.99999)),
-            std::tuple(std::string_view("1.1234234"),Double(1.1234234)),
-            std::tuple(std::string_view("9.9999999"),Double(9.9999999))
+            std::tuple(std::string_view("0.0;"),Double(0.0)),
+            std::tuple(std::string_view("1.1;"),Double(1.1)),
+            std::tuple(std::string_view("2.2;"),Double(2.2)),
+            std::tuple(std::string_view("3.3;"),Double(3.3)),
+            std::tuple(std::string_view("4.4;"),Double(4.4)),
+            std::tuple(std::string_view("5.5;"),Double(5.5)),
+            std::tuple(std::string_view("6.6;"),Double(6.6)),
+            std::tuple(std::string_view("7.7;"),Double(7.7)),
+            std::tuple(std::string_view("8.8;"),Double(8.8)),
+            std::tuple(std::string_view("9.9;"),Double(9.9)),
+            std::tuple(std::string_view("1.100;"),Double(1.100)),
+            std::tuple(std::string_view("1.155;"),Double(1.155)),
+            std::tuple(std::string_view("1.10000;"),Double(1.10000)),
+            std::tuple(std::string_view("9.99999;"),Double(9.99999)),
+            std::tuple(std::string_view("1.1234234;"),Double(1.1234234)),
+            std::tuple(std::string_view("9.9999999;"),Double(9.9999999))
             )
         );
 
@@ -116,22 +116,22 @@ INSTANTIATE_TEST_SUITE_P(
         ParseStr,
         ParseStrFixt,
         ::testing::Values(
-            std::tuple(std::string_view("\"0.0\""),Str("0.0")),
-            std::tuple(std::string_view("\"1.1\""),Str("1.1")),
-            std::tuple(std::string_view("\"2.2\""),Str("2.2")),
-            std::tuple(std::string_view("\"3.3\""),Str("3.3")),
-            std::tuple(std::string_view("\"4.4\""),Str("4.4")),
-            std::tuple(std::string_view("\"5.5\""),Str("5.5")),
-            std::tuple(std::string_view("\"6.6\""),Str("6.6")),
-            std::tuple(std::string_view("\"7.7\""),Str("7.7")),
-            std::tuple(std::string_view("\"8.8\""),Str("8.8")),
-            std::tuple(std::string_view("\"9.9\""),Str("9.9")),
-            std::tuple(std::string_view("\"1.100\""),Str("1.100")),
-            std::tuple(std::string_view("\"1.155\""),Str("1.155")),
-            std::tuple(std::string_view("\"1.10000\""),Str("1.10000")),
-            std::tuple(std::string_view("\"9.99999\""),Str("9.99999")),
-            std::tuple(std::string_view("\"1.1234234\""),Str("1.1234234")),
-            std::tuple(std::string_view("\"9.9999999\""),Str("9.9999999"))
+            std::tuple(std::string_view("\"0.0\";"),Str("0.0")),
+            std::tuple(std::string_view("\"1.1\";"),Str("1.1")),
+            std::tuple(std::string_view("\"2.2\";"),Str("2.2")),
+            std::tuple(std::string_view("\"3.3\";"),Str("3.3")),
+            std::tuple(std::string_view("\"4.4\";"),Str("4.4")),
+            std::tuple(std::string_view("\"5.5\";"),Str("5.5")),
+            std::tuple(std::string_view("\"6.6\";"),Str("6.6")),
+            std::tuple(std::string_view("\"7.7\";"),Str("7.7")),
+            std::tuple(std::string_view("\"8.8\";"),Str("8.8")),
+            std::tuple(std::string_view("\"9.9\";"),Str("9.9")),
+            std::tuple(std::string_view("\"1.100\";"),Str("1.100")),
+            std::tuple(std::string_view("\"1.155\";"),Str("1.155")),
+            std::tuple(std::string_view("\"1.10000\";"),Str("1.10000")),
+            std::tuple(std::string_view("\"9.99999\";"),Str("9.99999")),
+            std::tuple(std::string_view("\"1.1234234\";"),Str("1.1234234")),
+            std::tuple(std::string_view("\"9.9999999\";"),Str("9.9999999"))
             )
         );
 
@@ -159,7 +159,7 @@ INSTANTIATE_TEST_SUITE_P(
         ParseBool,
         ParseBoolFixt,
         ::testing::Values(
-            std::tuple(std::string_view("true"),Bool(true)),
-            std::tuple(std::string_view("false"),Bool(false))
+            std::tuple(std::string_view("true;"),Bool(true)),
+            std::tuple(std::string_view("false;"),Bool(false))
             )
         );

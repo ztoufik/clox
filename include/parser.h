@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include<print>
 #include<memory>
 #include<string>
 #include<vector>
@@ -20,6 +19,7 @@ template<typename T>class Parser{
         bool at_end() const noexcept;
         bool match_token_kind(Token& token, TokenKind kind) const noexcept;
         std::expected<bool,std::string> consume_token();
+        std::expected<std::unique_ptr<Stmt>,std::string> parse_stmt();
         std::expected<std::unique_ptr<Int>,std::string> parse_int();
         std::expected<std::unique_ptr<Double>,std::string> parse_double();
         std::expected<std::unique_ptr<Str>,std::string> parse_str();
@@ -44,6 +44,60 @@ template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token()
         } 
     }
     return std::unexpected("end of tokens stream reached");
+}
+
+template<typename T> std::expected<std::unique_ptr<Stmt>,std::string> Parser<T>::parse_stmt(){
+    while(!at_end()){
+        switch(current_token.value().kind){
+            case TokenKind::DOUBLE: {
+                                        auto rslt=std::move(parse_double());
+                                        if (rslt){
+                                            return std::move(rslt.value());
+                                        }
+                                        else{
+                                            return std::unexpected(rslt.error());
+                                        }
+                                        break;
+                                    }
+
+            case TokenKind::INT: {
+                                     auto rslt=std::move(parse_int());
+                                     if (rslt){
+                                         return std::move(rslt.value());
+                                     }
+                                     else{
+                                         return std::unexpected(rslt.error());
+                                     }
+                                     break;
+                                 }
+
+            case TokenKind::STRING: {
+                                        auto rslt=std::move(parse_str());
+                                        if (rslt){
+                                            return std::move(rslt.value());
+                                        }
+                                        else{
+                                            return std::unexpected(rslt.error());
+                                        }
+                                        break;
+                                    }
+
+            case TokenKind::FALSE: 
+            case TokenKind::TRUE:{
+                                     auto rslt=std::move(parse_bool());
+                                     if (rslt){
+                                         return std::move(rslt.value());
+                                     }
+                                     else{
+                                         return std::unexpected(rslt.error());
+                                     }
+                                     break;
+                                 }
+
+            default: return std::unexpected("implemented");
+        };
+    };
+    return std::unexpected("implemented");
 }
 
 template<typename T>  std::expected<std::unique_ptr<Int>,std::string> Parser<T>::parse_int(){
@@ -85,58 +139,21 @@ template<typename T>  std::expected<std::unique_ptr<Str>,std::string> Parser<T>:
 
 template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
     auto stmts=std::vector<std::shared_ptr<Stmt>>{};
-    std::unique_ptr<Stmt> stmt;
-
     while(!at_end()){
-        switch(current_token.value().kind){
-            case TokenKind::DOUBLE: {
-                                        auto rslt=std::move(parse_double());
-                                        if (rslt){
-                                            stmt=std::move(rslt.value());
-                                        }
-                                        else{
-                                            return std::unexpected(rslt.error());
-                                        }
-                                        break;
-                                    }
-
-            case TokenKind::INT: {
-                                     auto rslt=std::move(parse_int());
-                                     if (rslt){
-                                         stmt=std::move(rslt.value());
-                                     }
-                                     else{
-                                         return std::unexpected(rslt.error());
-                                     }
-                                     break;
-                                 }
-
-            case TokenKind::STRING: {
-                                        auto rslt=std::move(parse_str());
-                                        if (rslt){
-                                            stmt=std::move(rslt.value());
-                                        }
-                                        else{
-                                            return std::unexpected(rslt.error());
-                                        }
-                                        break;
-                                    }
-
-            case TokenKind::FALSE: 
-            case TokenKind::TRUE:{
-                                        auto rslt=std::move(parse_bool());
-                                        if (rslt){
-                                            stmt=std::move(rslt.value());
-                                        }
-                                        else{
-                                            return std::unexpected(rslt.error());
-                                        }
-                                        break;
-                                    }
-
-            default: return std::unexpected("implemented");
-        };
-        stmts.push_back(std::move(stmt));
+        auto stmt1=std::move(parse_stmt());
+        if (stmt1){
+            stmts.push_back(std::move(stmt1.value()));
+        }
+        else{
+            return std::unexpected(stmt1.error());
+        }
+        
+    if(!match_token_kind(current_token.value(), TokenKind::SEMICOLON)){
+            return std::unexpected("; expected");
+        }
+    if(!consume_token()){
+            return std::unexpected("; expected");
+    }
     };
 
     return std::move(Program(std::move(stmts)));
