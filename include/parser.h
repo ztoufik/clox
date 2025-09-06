@@ -50,7 +50,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
     while(!at_end()){
         switch(current_token.value().kind){
             case TokenKind::DOUBLE: {
-                                        auto rslt=std::move(parse_double());
+                                        auto rslt=parse_double();
                                         if (rslt){
                                             return std::make_shared<Double>(rslt.value());
                                         }
@@ -61,7 +61,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
                                     }
 
             case TokenKind::INT: {
-                                     auto rslt=std::move(parse_int());
+                                     auto rslt=parse_int();
                                      if (rslt){
                                          return std::make_shared<Int>(rslt.value());
                                      }
@@ -72,7 +72,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
                                  }
 
             case TokenKind::STRING: {
-                                        auto rslt=std::move(parse_str());
+                                        auto rslt=parse_str();
                                         if (rslt){
                                             return std::make_shared<Str>(rslt.value());
                                         }
@@ -84,7 +84,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
 
             case TokenKind::FALSE: 
             case TokenKind::TRUE:{
-                                     auto rslt=std::move(parse_bool());
+                                     auto rslt=parse_bool();
                                      if (rslt){
                                          return std::make_shared<Bool>(rslt.value());
                                      }
@@ -102,7 +102,7 @@ template<typename T> std::expected<std::shared_ptr<Stmt>,std::string> Parser<T>:
 
 template<typename T>  std::expected<Int,std::string> Parser<T>::parse_int(){
     int value=std::atoi(current_token.value().lexeme.c_str());
-    auto rslt=std::move(consume_token());
+    auto rslt=consume_token();
     if(rslt){
         return value;
     }
@@ -111,7 +111,7 @@ template<typename T>  std::expected<Int,std::string> Parser<T>::parse_int(){
 
 template<typename T>  std::expected<Double,std::string> Parser<T>::parse_double(){
     double value=std::stod(current_token.value().lexeme.c_str());
-    auto rslt=std::move(consume_token());
+    auto rslt=consume_token();
     if(rslt){
         return Double(value);
     }
@@ -121,7 +121,7 @@ template<typename T>  std::expected<Double,std::string> Parser<T>::parse_double(
 template<typename T>  std::expected<Bool,std::string> Parser<T>::parse_bool(){
     TokenKind tkind=current_token.value().kind;
     bool value=(tkind==TokenKind::TRUE)?true:false;
-    auto rslt=std::move(consume_token());
+    auto rslt=consume_token();
     if(rslt){
         return Bool(value);
     }
@@ -130,7 +130,7 @@ template<typename T>  std::expected<Bool,std::string> Parser<T>::parse_bool(){
 
 template<typename T>  std::expected<Str,std::string> Parser<T>::parse_str(){
     auto value=current_token.value().lexeme;
-    auto rslt=std::move(consume_token());
+    auto rslt=consume_token();
     if(rslt){
         return Str(value);
     }
@@ -156,7 +156,7 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
     }
     };
 
-    return std::move(Program(std::move(stmts)));
+    return Program(std::move(stmts));
 }
 
 template<typename T> bool Parser<T>::at_end() const noexcept { return current_token.value().kind==TokenKind::Eof; }
