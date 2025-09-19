@@ -13,6 +13,7 @@ struct TokenError{
 };
 
 enum class TokenKind {
+    Err,
     Eof ,
 
     LEFT_PAREN,
@@ -87,7 +88,7 @@ struct Token {
 template<typename T> class Lexer {
     public:
         Lexer(T&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
-        std::expected<Token,TokenError> get_token();
+        Token get_token();
 
     private:
         T src;
@@ -177,7 +178,7 @@ template<typename T> Token Lexer<T>::tokenize_string(){
     return Token(TokenKind::STRING,std::move(ss.str()),current_line);
 }
 
-template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
+template<typename T> Token Lexer<T>::get_token(){
     while(iter!=iter_end && isspace(*iter) ){
         if(*iter=='\n') current_line++; 
         consume();
@@ -231,7 +232,7 @@ template<typename T> std::expected<Token,TokenError>Lexer<T>::get_token(){
     if(std::isdigit(*iter)){
         return tokenize_numeric();
     }
-    return std::unexpected(TokenError{.msg = "unrecognized char"});
+    return Token(TokenKind::Err,current_line);
 }
 
 };

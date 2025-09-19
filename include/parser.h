@@ -17,7 +17,7 @@ template<typename T>class Parser{
         std::expected<Program,std::string> parse();
     private:
         bool at_end() const noexcept;
-        bool match_token_kind(Token& token, TokenKind kind) const noexcept;
+        bool match_token_kind(TokenKind kind) const;
         std::expected<bool,std::string> consume_token();
         std::expected<std::unique_ptr<Stmt>,std::string> parse_stmt();
         std::expected<Int,std::string> parse_int();
@@ -29,21 +29,19 @@ template<typename T>class Parser{
 };
 
 template<typename T> Parser<T>::Parser(Lexer<T>&& lexer):_lexer(std::move(lexer)){ 
-    current_token=_lexer.get_token().value();
+    current_token=_lexer.get_token();
 }
 
 template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token(){
-    if(!at_end()){ 
-        auto rslt=_lexer.get_token();
-        if(rslt){
-            current_token=rslt.value();
-            return true;
-        }
-        else{
+        if(match_token_kind(TokenKind::Err)){
             return std::unexpected("unrecognized token found");
-        } 
-    }
-    return std::unexpected("end of tokens stream reached");
+        }
+        if(match_token_kind(TokenKind::Eof)){
+            return std::unexpected("end of tokens stream reached");
+        }
+
+        current_token=_lexer.get_token();
+        return true;
 }
 
 template<typename T> std::expected<std::unique_ptr<Stmt>,std::string> Parser<T>::parse_stmt(){
@@ -148,20 +146,21 @@ template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
             return std::unexpected(stmt1.error());
         }
         
-    if(!match_token_kind(current_token.value(), TokenKind::SEMICOLON)){
+    if(!match_token_kind(TokenKind::SEMICOLON)){
             return std::unexpected("; expected");
         }
-    if(!consume_token()){
-            return std::unexpected("unexpected end of file");
+    auto token=consume_token();
+    if(!token){
+        return std::unexpected(token.error());
     }
     };
 
     return Program(std::move(stmts));
 }
 
-template<typename T> bool Parser<T>::at_end() const noexcept { return current_token.value().kind==TokenKind::Eof; }
+template<typename T> bool Parser<T>::at_end() const noexcept {return match_token_kind(TokenKind::Eof);}
 
-template<typename T> bool Parser<T>::match_token_kind(Token& token, TokenKind kind) const noexcept { return token.kind==kind; }
+template<typename T> bool Parser<T>::match_token_kind(TokenKind kind) const { return current_token.value().kind==kind; }
 
 }
 

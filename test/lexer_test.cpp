@@ -46,14 +46,9 @@ TEST_P(LexerFixture, LexerTest) {
     auto expected_token = std::get<1>(GetParam());
 
 
-    auto lexer=Lexer<std::string>(std::move(src));
+    auto lexer(Lexer<std::string>(std::move(src)));
     auto token=lexer.get_token();
-    if(token){
-        ASSERT_EQ(expected_token, (*token));
-    }
-    else {
-        throw std::exception("token error");
-    }
+    ASSERT_EQ(expected_token, token);
 }
 
 
