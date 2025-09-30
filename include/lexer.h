@@ -22,21 +22,26 @@ enum class TokenKind {
     LEFT_BRACE,
     RIGHT_BRACE,
 
-    COMMA,
-    DOT,
-    SEMICOLON,
     SLASH,
     STAR,
-    BANG,
+    MINUS,
+    PLUS,
+
+    COMMA,
+    DOT,
     EQUAL,
+    SEMICOLON,
 
     BIT_OR,
     BIT_AND,
-    MINUS,
-    PLUS,
+    BIT_RSHIFT,
+    BIT_LSHIFT,
+
+    BANG_EQUAL,
+    BANG,
+
     GREATER,
     LESS,
-    BANG_EQUAL,
     EQUAL_EQUAL,
     GREATER_EQUAL,
     LESS_EQUAL,
@@ -215,15 +220,15 @@ template<typename T> Token Lexer<T>::get_token(){
                  }
         case '<':{
                      consume();
-                     if (at_end() || *iter!='=' ){return Token(TokenKind::LESS,current_line);}
-                     consume();
-                     return Token(TokenKind::LESS_EQUAL,current_line);
+                     if (!at_end() && *iter=='='){consume();return Token(TokenKind::LESS_EQUAL,current_line);}
+                     if (!at_end() && *iter=='<'){consume();return Token(TokenKind::BIT_LSHIFT,current_line);}
+                     return Token(TokenKind::LESS,current_line);
                  }
         case '>':{
                      consume();
-                     if (at_end() || *iter!='=' ){return Token(TokenKind::GREATER,current_line);}
-                     consume();
-                     return Token(TokenKind::GREATER_EQUAL,current_line);
+                     if (!at_end() && *iter=='='){consume();return Token(TokenKind::GREATER_EQUAL,current_line);}
+                     if (!at_end() && *iter=='>'){consume();return Token(TokenKind::BIT_RSHIFT,current_line);}
+                     return Token(TokenKind::GREATER,current_line);
                  }
         case '!':{
                      consume();
