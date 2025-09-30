@@ -60,6 +60,8 @@ namespace tua{
 
     using BitOr=Bin_Expr<TokenKind::BIT_OR>;
     using BitAnd=Bin_Expr<TokenKind::BIT_AND>;
+    using RShift=Bin_Expr<TokenKind::BIT_RSHIFT>;
+    using LShift=Bin_Expr<TokenKind::BIT_LSHIFT>;
 
     using Minus=Unar_Expr<TokenKind::MINUS>;
     using Negate=Unar_Expr<TokenKind::BANG>;
