@@ -18,6 +18,9 @@ struct Expr:Stmt{
 };
 
 struct BinExpr:Expr{
+    public:
+        const Expr* get_left_expr()const noexcept {return left_;}
+        const Expr* get_right_expr()const noexcept {return right_;}
     protected:
         BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
         virtual ~BinExpr(){}
@@ -26,6 +29,8 @@ struct BinExpr:Expr{
 };
 
 struct UnaryExpr:Expr{
+    public:
+        const Expr* get_expr()const noexcept {return expr;}
     protected:
         UnaryExpr(Expr* expr):expr(expr){}
         virtual ~UnaryExpr(){}
