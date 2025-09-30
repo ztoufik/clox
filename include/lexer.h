@@ -2,7 +2,6 @@
 #define  LEXER_H
 
 #include <string>
-#include <expected>
 #include <sstream>
 #include <unordered_map>
 
@@ -213,6 +212,18 @@ template<typename T> Token Lexer<T>::get_token(){
                      if (at_end() || *iter!='=' ){return Token(TokenKind::EQUAL,current_line);}
                      consume();
                      return Token(TokenKind::EQUAL_EQUAL,current_line);
+                 }
+        case '<':{
+                     consume();
+                     if (at_end() || *iter!='=' ){return Token(TokenKind::LESS,current_line);}
+                     consume();
+                     return Token(TokenKind::LESS_EQUAL,current_line);
+                 }
+        case '>':{
+                     consume();
+                     if (at_end() || *iter!='=' ){return Token(TokenKind::GREATER,current_line);}
+                     consume();
+                     return Token(TokenKind::GREATER_EQUAL,current_line);
                  }
         case '!':{
                      consume();
