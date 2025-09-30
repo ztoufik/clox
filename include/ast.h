@@ -6,7 +6,6 @@
 #include<memory>
 
 struct Stmt{
-
     virtual ~Stmt(){}
 };
 
@@ -20,72 +19,77 @@ struct Expr:Stmt{
 
 struct BinExpr:Expr{
     protected:
-    BinExpr(Expr&& left,Expr&& right):left_(std::move(left)),right_(std::move(right)){}
-    virtual ~BinExpr(){}
-    Expr left_,right_;
+        BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
+        virtual ~BinExpr(){}
+        Expr* left_;
+        Expr* right_;
 };
 
 struct UnaryExpr:Expr{
     protected:
-        UnaryExpr(Expr&& expr):expr(std::move(expr)){}
+        UnaryExpr(Expr* expr):expr(expr){}
         virtual ~UnaryExpr(){}
-        Expr expr;
+        Expr* expr;
 };
 
 struct Add:public BinExpr{
-    Add(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Add(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Sub:public BinExpr{
-    Sub(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Sub(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Mul:public BinExpr{
-    Mul(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Mul(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Div:public BinExpr{
-    Div(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Div(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Equality:public BinExpr{
-    Equality(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Equality(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Less:public BinExpr{
-    Less(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Less(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Lesser:public BinExpr{
-    Lesser(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Lesser(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Greater:public BinExpr{
-    Greater(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Greater(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Less_eq:public BinExpr{
-    Less_eq(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Less_eq(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Great_eq:public BinExpr{
-    Great_eq(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Great_eq(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Bit_or:public BinExpr{
-    Bit_or(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Bit_or(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Bit_and:public BinExpr{
-    Bit_and(Expr&& left,Expr&& right):BinExpr(std::move(left),std::move(right)){}
+    Bit_and(Expr* left,Expr* right):BinExpr(left,right){}
 };
 
 struct Minus:UnaryExpr{
-    Minus(Expr&& expr):UnaryExpr(std::move(expr)){}
+    Minus(Expr* expr):UnaryExpr(expr){}
 };
 
 struct Negate:UnaryExpr{
-    Negate(Expr&& expr):UnaryExpr(std::move(expr)){}
+    Negate(Expr* expr):UnaryExpr(expr){}
+};
+
+struct Group:UnaryExpr{
+    Group(Expr* expr):UnaryExpr(expr){}
 };
 
 template<typename T> struct Literal:Expr{
@@ -103,10 +107,10 @@ using Int=Literal<int>;
 using Str=Literal<std::string>;
 using Bool=Literal<bool>;
 
-using Stmts=std::vector<std::unique_ptr<Stmt>>;
+using Stmts=std::vector<Stmt*>;
 
 struct Program{
-    Program(Stmts&& stmts):stmts(std::move(stmts)){}
+    Program(Stmts&& stmts):stmts(stmts){}
     Stmts stmts;
 };
 

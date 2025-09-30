@@ -24,7 +24,7 @@ TEST_P(ParseIntFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=dynamic_cast<Int*>(stmt.at(0).get());
+    auto ast_node=(Int*)(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -66,7 +66,7 @@ TEST_P(ParseDoubleFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=dynamic_cast<Double*>(stmt.at(0).get());
+    auto ast_node=(Double*)(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -108,7 +108,7 @@ TEST_P(ParseStrFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=dynamic_cast<Str*>(stmt.at(0).get());
+    auto ast_node=(Str*)(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -139,7 +139,6 @@ INSTANTIATE_TEST_SUITE_P(
 class ParseBoolFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Bool>> {
 };
 
-// Define the test case using TEST_P
 TEST_P(ParseBoolFixt, ParserTest) {
     auto expected_ast_node = std::get<1>(GetParam());
 
@@ -151,7 +150,7 @@ TEST_P(ParseBoolFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=dynamic_cast<Bool*>(stmt.at(0).get());
+    auto ast_node=(Bool*)(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -160,7 +159,33 @@ INSTANTIATE_TEST_SUITE_P(
         ParseBool,
         ParseBoolFixt,
         ::testing::Values(
-            std::tuple(std::string_view("true;"),Bool(true))
-            //std::tuple(std::string_view("false;"),Bool(false))
+            std::tuple(std::string_view("true;"),Bool(true)),
+            std::tuple(std::string_view("false;"),Bool(false))
+            )
+        );
+
+class ParseGroupFixt : public ::testing::TestWithParam<std::tuple<std::string_view, Group>> {
+};
+
+TEST_P(ParseGroupFixt, ParserTest) {
+    auto expected_ast_node = std::get<1>(GetParam());
+
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=(Group*)(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseGroup,
+        ParseGroupFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("(true);"),Group(new Bool(true)))
             )
         );
