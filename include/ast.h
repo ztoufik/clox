@@ -3,120 +3,89 @@
 
 #include<string>
 #include<vector>
-#include<memory>
 
-struct Stmt{
-    virtual ~Stmt(){}
-};
+#include"lexer.h"
 
-struct Assign:Stmt{
-    virtual ~Assign(){}
-};
+namespace tua{
+    struct Stmt{
+        virtual ~Stmt(){}
+    };
 
-struct Expr:Stmt{
-    virtual ~Expr(){}
-};
+    struct Assign:Stmt{
+        virtual ~Assign(){}
+    };
 
-struct BinExpr:Expr{
-    public:
-        const Expr* get_left_expr()const noexcept {return left_;}
-        const Expr* get_right_expr()const noexcept {return right_;}
-    protected:
-        BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
-        virtual ~BinExpr(){}
-        Expr* left_;
-        Expr* right_;
-};
+    struct Expr:Stmt{
+        virtual ~Expr(){}
+    };
 
-struct UnaryExpr:Expr{
-    public:
-        const Expr* get_expr()const noexcept {return expr;}
-    protected:
-        UnaryExpr(Expr* expr):expr(expr){}
-        virtual ~UnaryExpr(){}
-        Expr* expr;
-};
+    struct BinExpr:Expr{
+        public:
+            const Expr* get_left_expr()const noexcept {return left_;}
+            const Expr* get_right_expr()const noexcept {return right_;}
+        protected:
+            BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
+            virtual ~BinExpr(){}
+            Expr* left_;
+            Expr* right_;
+    };
 
-struct Add:public BinExpr{
-    Add(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    struct UnaryExpr:Expr{
+        public:
+            const Expr* get_expr()const noexcept {return expr;}
+        protected:
+            UnaryExpr(Expr* expr):expr(expr){}
+            virtual ~UnaryExpr(){}
+            Expr* expr;
+    };
 
-struct Sub:public BinExpr{
-    Sub(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    template<TokenKind kind> struct Unar_Expr:UnaryExpr{
+        Unar_Expr(Expr* expr):UnaryExpr(expr){}
+    };
 
-struct Mul:public BinExpr{
-    Mul(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    template<TokenKind kind> struct Bin_Expr:BinExpr{
+        Bin_Expr(Expr* left,Expr* right):BinExpr(left,right){}
+    };
 
-struct Div:public BinExpr{
-    Div(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using Add=Bin_Expr<TokenKind::PLUS>;
+    using Sub=Bin_Expr<TokenKind::MINUS>;
+    using Mul=Bin_Expr<TokenKind::STAR>;
+    using Div=Bin_Expr<TokenKind::SLASH>;
 
-struct Equality:public BinExpr{
-    Equality(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using Equality=Bin_Expr<TokenKind::EQUAL_EQUAL>;
+    using Less=Bin_Expr<TokenKind::LESS>;
+    using Great=Bin_Expr<TokenKind::GREATER>;
+    using LessEq=Bin_Expr<TokenKind::LESS_EQUAL>;
+    using GreatEq=Bin_Expr<TokenKind::GREATER_EQUAL>;
 
-struct Less:public BinExpr{
-    Less(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using BitOr=Bin_Expr<TokenKind::BIT_OR>;
+    using BitAnd=Bin_Expr<TokenKind::BIT_AND>;
 
-struct Lesser:public BinExpr{
-    Lesser(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using Minus=Unar_Expr<TokenKind::MINUS>;
+    using Negate=Unar_Expr<TokenKind::BANG>;
+    using Group=Unar_Expr<TokenKind::LEFT_PAREN>;
 
-struct Greater:public BinExpr{
-    Greater(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    template<typename T> struct Literal:Expr{
+        Literal(T value):value(value){}
+        Literal(const Literal&)=default;
+        Literal(Literal&&)=default;
+        Literal& operator=(const Literal&)=default;
+        Literal& operator=(Literal&&)=default;
+        T value;
+        bool operator==(const Literal<T>& lhs)const noexcept {return value==lhs.value;}
+    };
 
-struct Less_eq:public BinExpr{
-    Less_eq(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using Double=Literal<double>;
+    using Int=Literal<int>;
+    using Str=Literal<std::string>;
+    using Bool=Literal<bool>;
 
-struct Great_eq:public BinExpr{
-    Great_eq(Expr* left,Expr* right):BinExpr(left,right){}
-};
+    using Stmts=std::vector<Stmt*>;
 
-struct Bit_or:public BinExpr{
-    Bit_or(Expr* left,Expr* right):BinExpr(left,right){}
-};
-
-struct Bit_and:public BinExpr{
-    Bit_and(Expr* left,Expr* right):BinExpr(left,right){}
-};
-
-struct Minus:UnaryExpr{
-    Minus(Expr* expr):UnaryExpr(expr){}
-};
-
-struct Negate:UnaryExpr{
-    Negate(Expr* expr):UnaryExpr(expr){}
-};
-
-struct Group:UnaryExpr{
-    Group(Expr* expr):UnaryExpr(expr){}
-};
-
-template<typename T> struct Literal:Expr{
-    Literal(T value):value(value){}
-    Literal(const Literal&)=default;
-    Literal(Literal&&)=default;
-    Literal& operator=(const Literal&)=default;
-    Literal& operator=(Literal&&)=default;
-    T value;
-    bool operator==(const Literal<T>& lhs)const noexcept {return value==lhs.value;}
-};
-
-using Double=Literal<double>;
-using Int=Literal<int>;
-using Str=Literal<std::string>;
-using Bool=Literal<bool>;
-
-using Stmts=std::vector<Stmt*>;
-
-struct Program{
-    Program(Stmts&& stmts):stmts(stmts){}
-    Stmts stmts;
+    struct Program{
+        Program(Stmts&& stmts):stmts(stmts){}
+        Stmts stmts;
+    };
 };
 
 #endif 
