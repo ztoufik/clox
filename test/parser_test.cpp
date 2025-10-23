@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 
@@ -23,7 +24,7 @@ TEST_P(ParseIntFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=(Int*)(stmt.at(0));
+    auto ast_node=dynamic_cast<Int*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -65,7 +66,7 @@ TEST_P(ParseDoubleFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=(Double*)(stmt.at(0));
+    auto ast_node=dynamic_cast<Double*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -107,7 +108,7 @@ TEST_P(ParseStrFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=(Str*)(stmt.at(0));
+    auto ast_node=dynamic_cast<Str*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -149,7 +150,7 @@ TEST_P(ParseBoolFixt, ParserTest) {
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=(Bool*)(stmt.at(0));
+    auto ast_node=dynamic_cast<Bool*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
     ASSERT_EQ(expected_ast_node,*ast_node);
 }
@@ -163,11 +164,12 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
-class ParseGroupFixt1 : public ::testing::TestWithParam<std::tuple<std::string_view, Group>> {
+class ParseGroupFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
 };
 
-TEST_F(ParseGroupFixt1, ParserTest) {
-    auto lexer=Lexer<std::string_view>("(true);");
+TEST_P(ParseGroupFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
     Parser parser(Parser(std::move(lexer)));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
@@ -178,19 +180,117 @@ TEST_F(ParseGroupFixt1, ParserTest) {
     ASSERT_TRUE(ast_node);
 }
 
-class ParseGroupFixt2 : public ::testing::TestWithParam<std::tuple<std::string_view, Group>> {
+INSTANTIATE_TEST_SUITE_P(
+        ParseGroup,
+        ParseGroupFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("(3);")),
+            std::tuple(std::string_view("(false);")),
+            std::tuple(std::string_view("((3+3));"))
+            )
+        );
+
+class ParseAddFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
 };
 
-TEST_F(ParseGroupFixt2, ParserTest) {
-    auto lexer=Lexer<std::string_view>("((3.3));");
+TEST_P(ParseAddFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
     Parser parser(Parser(std::move(lexer)));
     auto rslt=parser.parse();
     ASSERT_TRUE(rslt);
     Program& program=rslt.value();
     auto& stmt=program.stmts;
     ASSERT_EQ(stmt.size(),1);
-    auto ast_node=dynamic_cast<Group*>(stmt.at(0));
+    auto ast_node=dynamic_cast<Add*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
-    auto expr=dynamic_cast<const Group*>(ast_node->get_expr());
-    ASSERT_TRUE(expr);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseAdd,
+        ParseAddFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("3+3;")),
+            std::tuple(std::string_view("3+0.3*4;")),
+            std::tuple(std::string_view("(3)+0;"))
+            )
+        );
+
+class ParseSubFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseSubFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Sub*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseSub,
+        ParseSubFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("3-3;")),
+            std::tuple(std::string_view("3-0.3*4;")),
+            std::tuple(std::string_view("(3)-0;"))
+            )
+        );
+
+class ParseMulFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseMulFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Mul*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseMul,
+        ParseMulFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("3*3;")),
+            std::tuple(std::string_view("(3+4)*3;")),
+            std::tuple(std::string_view("3*3*0;")),
+            std::tuple(std::string_view("3*3/0;"))
+            )
+        );
+
+class ParseDivFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseDivFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Div*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseDiv,
+        ParseDivFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("3/3;")),
+            std::tuple(std::string_view("(3+4)/3;")),
+            std::tuple(std::string_view("3/3*0;"))
+            )
+        );
