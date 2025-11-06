@@ -25,18 +25,27 @@ namespace tua{
             const Expr* get_right_expr()const noexcept {return right_;}
         protected:
             BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
-            virtual ~BinExpr(){}
+            virtual ~BinExpr(){
+                if(!left_ && !right_){
+                    delete left_;
+                    delete right_;
+                }
+            }
             Expr* left_;
             Expr* right_;
     };
 
     struct UnaryExpr:Expr{
         public:
-            const Expr* get_expr()const noexcept {return expr;}
+            const Expr* get_expr()const noexcept {return expr_;}
         protected:
-            UnaryExpr(Expr* expr):expr(expr){}
-            virtual ~UnaryExpr(){}
-            Expr* expr;
+            UnaryExpr(Expr* expr):expr_(expr){}
+            virtual ~UnaryExpr(){
+                if(!expr_){
+                    delete expr_;
+                }
+            }
+            Expr* expr_;
     };
 
     template<TokenKind kind> struct Unar_Expr:UnaryExpr{
@@ -81,6 +90,16 @@ namespace tua{
     using Int=Literal<int>;
     using Str=Literal<std::string>;
     using Bool=Literal<bool>;
+
+    struct Symbol:Expr{
+        Symbol(std::string&& ident):ident_(std::move(ident)){}
+        Symbol(const Symbol&)=default;
+        Symbol(Symbol&&)=default;
+        Symbol& operator=(const Symbol&)=default;
+        Symbol& operator=(Symbol&&)=default;
+        std::string ident_;
+        bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
+    };
 
     using Stmts=std::vector<Stmt*>;
 

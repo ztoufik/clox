@@ -1,9 +1,9 @@
-
 #include <gtest/gtest.h>
 
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
+#include "error.h"
 
 using namespace tua;
 
@@ -186,6 +186,8 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("(3);")),
             std::tuple(std::string_view("(false);")),
+            std::tuple(std::string_view("(a);")),
+            std::tuple(std::string_view("(b+test);")),
             std::tuple(std::string_view("((3+3));"))
             )
         );
@@ -212,7 +214,8 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("3+3;")),
             std::tuple(std::string_view("3+0.3*4;")),
-            std::tuple(std::string_view("(3)+0;"))
+            std::tuple(std::string_view("(3)+0;")),
+            std::tuple(std::string_view("1+hello;"))
             )
         );
 
@@ -238,6 +241,7 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("3-3;")),
             std::tuple(std::string_view("3-0.3*4;")),
+            std::tuple(std::string_view("test-hello;")),
             std::tuple(std::string_view("(3)-0;"))
             )
         );
@@ -265,6 +269,7 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string_view("3*3;")),
             std::tuple(std::string_view("(3+4)*3;")),
             std::tuple(std::string_view("3*3*0;")),
+            std::tuple(std::string_view("(a+t)*b;")),
             std::tuple(std::string_view("3*3/0;"))
             )
         );
@@ -291,6 +296,60 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("3/3;")),
             std::tuple(std::string_view("(3+4)/3;")),
+            std::tuple(std::string_view("(hello+4)/test;")),
             std::tuple(std::string_view("3/3*0;"))
+            )
+        );
+
+class ParsesymFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParsesymFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Symbol*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        Parsesym,
+        ParsesymFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("a;")),
+            std::tuple(std::string_view("test;")),
+            std::tuple(std::string_view("hello;"))
+            )
+        );
+
+
+class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
+};
+
+TEST_P(ParseErrorFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto err_ob = std::get<1>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_FALSE(rslt);
+    auto ast_node=dynamic_cast<ParseError*>(rslt.error());
+    ASSERT_TRUE(ast_node);
+    ASSERT_EQ(err_ob,*ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseDiv,
+        ParseErrorFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("3"),ParseError(std::string("; expected"),0)),
+            std::tuple(std::string_view("(3+0.1"),ParseError(std::string(") expected"),0)),
+            std::tuple(std::string_view("["),ParseError(std::string("unimplemented"),0)),
+            std::tuple(std::string_view("3;\n(3+0.1"),ParseError(std::string(") expected"),1))
             )
         );

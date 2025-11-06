@@ -8,27 +8,30 @@
 
 #include"lexer.h"
 #include"ast.h"
+#include"error.h"
 
 namespace tua{
 
     template<typename T>class Parser{
         public:
             Parser(Lexer<T>&& lexer);
-            std::expected<Program,std::string> parse();
+            std::expected<Program,Error*> parse();
         private:
             bool at_end() const noexcept;
             bool match_token_kind(TokenKind kind) const;
-            std::expected<bool,std::string> consume_token();
-            std::expected<Stmt*,std::string> parse_stmt();
-            std::expected<Expr*,std::string> parse_expr();
-            std::expected<Expr*,std::string> parse_term();
-            std::expected<Expr*,std::string> parse_factor();
-            std::expected<Expr*,std::string> parse_terminals();
-            std::expected<Group*,std::string> parse_group();
-            std::expected<Int*,std::string> parse_int();
-            std::expected<Double*,std::string> parse_double();
-            std::expected<Str*,std::string> parse_str();
-            std::expected<Bool*,std::string> parse_bool();
+            std::expected<bool,Error*> consume_token();
+            std::expected<Stmt*,Error*> parse_stmt();
+            std::expected<Expr*,Error*> parse_expr();
+            std::expected<Expr*,Error*> parse_term();
+            std::expected<Expr*,Error*> parse_factor();
+            std::expected<Expr*,Error*> parse_terminals();
+            std::expected<Expr*,Error*> parse_group();
+            std::expected<Expr*,Error*>parse_int();
+            std::expected<Expr*,Error*> parse_double();
+            std::expected<Expr*,Error*>parse_str();
+            std::expected<Expr*,Error*> parse_bool();
+            std::expected<Expr*,Error*> parse_symbol();
+            std::expected<Expr*,Error*> parse_fctcall();
             Lexer<T> _lexer;
             std::optional<Token> current_token;
     };
@@ -37,19 +40,18 @@ namespace tua{
         current_token=_lexer.get_token();
     }
 
-    template<typename T>  std::expected<bool,std::string> Parser<T>::consume_token(){
+    template<typename T>  std::expected<bool,Error*> Parser<T>::consume_token(){
         if(match_token_kind(TokenKind::Err)){
-            return std::unexpected("unrecognized token found");
+            return std::unexpected(new ParseError("unrecognized token found",_lexer.get_line()));
         }
         if(match_token_kind(TokenKind::Eof)){
-            return std::unexpected("end of tokens stream reached");
+            return std::unexpected(new ParseError("unrecognized token found",_lexer.get_line()));
         }
-
         current_token=_lexer.get_token();
         return true;
     }
 
-    template<typename T> std::expected<Program,std::string> Parser<T>::parse(){
+    template<typename T> std::expected<Program,Error*> Parser<T>::parse(){
         auto stmts=std::vector<Stmt*>{};
         while(!at_end()){
             auto stmt1=parse_stmt();
@@ -61,7 +63,7 @@ namespace tua{
             }
 
             if(!match_token_kind(TokenKind::SEMICOLON)){
-                return std::unexpected("; expected");
+                return std::unexpected(new ParseError("; expected",0));
             }
 
             auto token=consume_token();
@@ -73,7 +75,7 @@ namespace tua{
         return Program(std::move(stmts));
     }
 
-    template<typename T> std::expected<Stmt*,std::string> Parser<T>::parse_stmt(){
+    template<typename T> std::expected<Stmt*,Error*> Parser<T>::parse_stmt(){
         auto expr= parse_expr();
         if(!expr){
             return std::unexpected(expr.error());
@@ -81,11 +83,11 @@ namespace tua{
         return expr.value();
     }
 
-    template<typename T> std::expected<Expr*,std::string> Parser<T>::parse_expr(){
+    template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_expr(){
         return  parse_term();
     }
 
-    template<typename T> std::expected<Expr*,std::string> Parser<T>::parse_term(){
+    template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_term(){
         auto left_expr=parse_factor();
         if (!left_expr){
             return std::unexpected(left_expr.error());
@@ -113,18 +115,16 @@ namespace tua{
     return left_expr;
     }
 
-template<typename T> std::expected<Expr*,std::string> Parser<T>::parse_factor(){
+template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_factor(){
     auto left_expr=parse_terminals();
-    if (!left_expr){
-        return std::unexpected(left_expr.error());
-    }
+    if (left_expr){
     switch(current_token.value().kind){
         case tua::TokenKind::STAR:{
 
                                       auto rslt=consume_token();
                                       auto right_expr=parse_expr();
                                       if (!right_expr){
-                                          return std::unexpected(right_expr.error());
+                                          return right_expr;
                                       }
                                       return new Mul(left_expr.value(),right_expr.value());
                                   }
@@ -132,79 +132,50 @@ template<typename T> std::expected<Expr*,std::string> Parser<T>::parse_factor(){
         case TokenKind::SLASH :{
                                    auto rslt=consume_token();
                                    auto right_expr=parse_expr();
-                                   if (!right_expr){
-                                       return std::unexpected(right_expr.error());
-                                   }
+                                  if (!right_expr){
+                                      return right_expr;
+                                  }
                                    return new Div(left_expr.value(),right_expr.value());
                                }
         default:break;
     }
-
+    }
     return left_expr;
 }
 
-template<typename T> std::expected<Expr*,std::string> Parser<T>::parse_terminals(){
+template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_terminals(){
     switch(current_token.value().kind){
-        case TokenKind::DOUBLE: {
-                                    auto rslt=parse_double();
-                                    if (!rslt){
-                                        return std::unexpected(rslt.error());
-                                    }
-                                    return rslt.value();
-                                }
+        case TokenKind::DOUBLE:  return parse_double();
 
-        case TokenKind::INT: {
-                                 auto rslt=parse_int();
-                                 if (!rslt){
-                                     return std::unexpected(rslt.error());
-                                 }
-                                 return rslt.value();
-                             }
+        case TokenKind::INT: return parse_int();
 
-        case TokenKind::STRING: {
-                                    auto rslt=parse_str();
-                                    if (!rslt){
-                                        return std::unexpected(rslt.error());
-                                    }
-                                    return rslt.value();
-                                }
+        case TokenKind::STRING: return parse_str();
 
         case TokenKind::FALSE: 
-        case TokenKind::TRUE:{
-                                 auto rslt=parse_bool();
-                                 if (!rslt){
-                                     return std::unexpected(rslt.error());
-                                 }
-                                 return rslt.value();
-                             }
+        case TokenKind::TRUE: return parse_bool();
 
-        case TokenKind::LEFT_PAREN:{
-                                       auto rslt=parse_group();
-                                       if (!rslt){
-                                           return std::unexpected(rslt.error());
-                                       }
-                                       return rslt.value();
-                                   }
+        case TokenKind::LEFT_PAREN: return parse_group();
+        case TokenKind::IDENT: return parse_symbol();
 
-        default: return std::unexpected("implemented");
+        default: break;
     };
-    return std::unexpected("implemented");
+        return std::unexpected(new ParseError("unimplemented",_lexer.get_line()));
 }
 
-template<typename T>  std::expected<Group*,std::string> Parser<T>::parse_group(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_group(){
     auto rslt=consume_token();
     auto expr=parse_expr();
     if(!expr){
-        return std::unexpected("couldn't parse group");
+        return expr;
     }
     if(!match_token_kind(TokenKind::RIGHT_PAREN)){
-        return std::unexpected("')' expected");
+        return std::unexpected(new ParseError(") expected",_lexer.get_line()));
     }
     rslt=consume_token();
     return new Group(expr.value());
 }
 
-template<typename T>  std::expected<Int*,std::string> Parser<T>::parse_int(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_int(){
     int value=std::atoi(current_token.value().lexeme.c_str());
     auto rslt=consume_token();
     if(rslt){
@@ -213,7 +184,7 @@ template<typename T>  std::expected<Int*,std::string> Parser<T>::parse_int(){
     return std::unexpected(rslt.error());
 }
 
-template<typename T>  std::expected<Double*,std::string> Parser<T>::parse_double(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_double(){
     double value=std::stod(current_token.value().lexeme.c_str());
     auto rslt=consume_token();
     if(rslt){
@@ -222,7 +193,7 @@ template<typename T>  std::expected<Double*,std::string> Parser<T>::parse_double
     return std::unexpected(rslt.error());
 }
 
-template<typename T>  std::expected<Bool*,std::string> Parser<T>::parse_bool(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_bool(){
     TokenKind tkind=current_token.value().kind;
     bool value=(tkind==TokenKind::TRUE)?true:false;
     auto rslt=consume_token();
@@ -232,13 +203,30 @@ template<typename T>  std::expected<Bool*,std::string> Parser<T>::parse_bool(){
     return std::unexpected(rslt.error());
 }
 
-template<typename T>  std::expected<Str*,std::string> Parser<T>::parse_str(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_str(){
     auto value=current_token.value().lexeme;
     auto rslt=consume_token();
     if(rslt){
         return new Str(value);
     }
     return std::unexpected(rslt.error());
+}
+
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_symbol(){
+    auto sym_name=current_token.value().lexeme;
+    auto rslt=consume_token();
+    if(!rslt){
+        return std::unexpected(rslt.error());
+    }
+    switch(current_token.value().kind){
+        case tua::TokenKind::LEFT_PAREN: return parse_fctcall();
+        default:break;
+    }
+    return new Symbol(std::move(sym_name));
+}
+
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcall(){
+    return new Symbol(std::string("fctcall"));
 }
 
 

@@ -93,6 +93,7 @@ template<typename T> class Lexer {
     public:
         Lexer(T&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
         Token get_token();
+        const std::uint16_t get_line();
 
     private:
         T src;
@@ -180,6 +181,10 @@ template<typename T> Token Lexer<T>::tokenize_string(){
     };
     iter++;
     return Token(TokenKind::STRING,std::move(ss.str()),current_line);
+}
+
+template<typename T> const std::uint16_t Lexer<T>::get_line(){
+    return current_line;
 }
 
 template<typename T> Token Lexer<T>::get_token(){
