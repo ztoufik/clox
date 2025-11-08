@@ -116,7 +116,7 @@ namespace tua{
     }
 
 template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_factor(){
-    auto left_expr=parse_terminals();
+    auto left_expr=parse_fctcall();
     if (left_expr){
     switch(current_token.value().kind){
         case tua::TokenKind::STAR:{
@@ -141,6 +141,40 @@ template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_factor(){
     }
     }
     return left_expr;
+}
+
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcall(){
+    auto expr=parse_terminals();
+    if(!expr){
+        return expr;
+    }
+    auto args=std::vector<Expr*>();
+    if(match_token_kind(TokenKind::LEFT_PAREN)){
+        auto token=consume_token();
+        if(match_token_kind(TokenKind::RIGHT_PAREN)){
+            token=consume_token();
+            return new FctCall(std::move(expr.value()),std::move(args));
+        }
+        auto arg=parse_expr();
+        if(!arg){
+            return arg;
+        }
+        args.push_back(std::move(arg.value()));
+        while(!match_token_kind(TokenKind::RIGHT_PAREN)){
+            if(!match_token_kind(TokenKind::COMMA)){
+                return std::unexpected(new ParseError(std::string(", expected"),_lexer.get_line()));
+            }
+            auto rslt=consume_token();
+            auto arg=parse_expr();
+            if(!arg){
+                return arg;
+            }
+            args.push_back(std::move(arg.value()));
+        }
+        auto rslt=consume_token();
+            return new FctCall(std::move(expr.value()),std::move(args));
+    }
+    return expr;
 }
 
 template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_terminals(){
@@ -218,16 +252,9 @@ template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_symbol(){
     if(!rslt){
         return std::unexpected(rslt.error());
     }
-    switch(current_token.value().kind){
-        case tua::TokenKind::LEFT_PAREN: return parse_fctcall();
-        default:break;
-    }
     return new Symbol(std::move(sym_name));
 }
 
-template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcall(){
-    return new Symbol(std::string("fctcall"));
-}
 
 
 template<typename T> bool Parser<T>::at_end() const noexcept {return match_token_kind(TokenKind::Eof);}

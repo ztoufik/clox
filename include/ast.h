@@ -101,6 +101,16 @@ namespace tua{
         bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
     };
 
+    struct FctCall:Expr{
+        FctCall(Expr* expr,std::vector<Expr*>&& exprs):expr_(expr),exprs_(std::move(exprs)){}
+        FctCall(const FctCall&)=default;
+        FctCall(FctCall&&)=default;
+        FctCall& operator=(const FctCall&)=default;
+        FctCall& operator=(FctCall&&)=default;
+        Expr* expr_;
+        std::vector<Expr*> exprs_;
+    };
+
     using Stmts=std::vector<Stmt*>;
 
     struct Program{

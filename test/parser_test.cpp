@@ -301,11 +301,12 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
-class ParsesymFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+class ParsesymFixt : public ::testing::TestWithParam<std::tuple<std::string_view,Symbol>> {
 };
 
 TEST_P(ParsesymFixt, ParserTest) {
     auto src = std::get<0>(GetParam());
+    auto symbol = std::get<1>(GetParam());
     auto lexer=Lexer<std::string_view>(std::move(src));
     Parser parser(Parser(std::move(lexer)));
     auto rslt=parser.parse();
@@ -315,18 +316,45 @@ TEST_P(ParsesymFixt, ParserTest) {
     ASSERT_EQ(stmt.size(),1);
     auto ast_node=dynamic_cast<Symbol*>(stmt.at(0));
     ASSERT_TRUE(ast_node);
+    ASSERT_EQ(symbol,*ast_node);
 }
 
 INSTANTIATE_TEST_SUITE_P(
         Parsesym,
         ParsesymFixt,
         ::testing::Values(
-            std::tuple(std::string_view("a;")),
-            std::tuple(std::string_view("test;")),
-            std::tuple(std::string_view("hello;"))
+            std::tuple(std::string_view("a;"),Symbol("a")),
+            std::tuple(std::string_view("test;"),Symbol("test"))
             )
         );
 
+
+class ParsefctcallFixt : public ::testing::TestWithParam<std::tuple<std::string_view,FctCall>> {
+};
+
+TEST_P(ParsefctcallFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto fctcall = std::get<1>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<FctCall*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+    //ASSERT_EQ(fctcall,*ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        Parsefctcall,
+        ParsefctcallFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("a();"),FctCall(new Symbol("a"),std::vector<Expr*>())),
+                std::tuple(std::string_view("test();"),FctCall(new Symbol("test"),std::vector<Expr*>()))
+            )
+        );
 
 class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
 };
