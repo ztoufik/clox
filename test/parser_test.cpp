@@ -352,7 +352,11 @@ INSTANTIATE_TEST_SUITE_P(
         ParsefctcallFixt,
         ::testing::Values(
             std::tuple(std::string_view("a();"),FctCall(new Symbol("a"),std::vector<Expr*>())),
-                std::tuple(std::string_view("test();"),FctCall(new Symbol("test"),std::vector<Expr*>()))
+            std::tuple(std::string_view("test();"),FctCall(new Symbol("test"),std::vector<Expr*>())),
+            std::tuple(std::string_view("(test)(3);"),FctCall(new Group(new Symbol("test")),{new Int(3)})),
+            std::tuple(std::string_view("(test)(3,len);"),FctCall(new Group(new Symbol("test")),{new Int(3),new Symbol("len")})),
+            std::tuple(std::string_view("(test)(3,len)();"),FctCall(new Group(new Symbol("test")),{new Int(3),new Symbol("len")})),
+            std::tuple(std::string_view("(test)(3,len)()()()()();"),FctCall(new Group(new Symbol("test")),{new Int(3),new Symbol("len")}))
             )
         );
 
@@ -378,6 +382,7 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string_view("3"),ParseError(std::string("; expected"),0)),
             std::tuple(std::string_view("(3+0.1"),ParseError(std::string(") expected"),0)),
             std::tuple(std::string_view("["),ParseError(std::string("unimplemented"),0)),
-            std::tuple(std::string_view("3;\n(3+0.1"),ParseError(std::string(") expected"),1))
+            std::tuple(std::string_view("3;\n(3+0.1"),ParseError(std::string(") expected"),1)),
+            std::tuple(std::string_view("3;\nfct(a b)"),ParseError(std::string(", expected"),1))
             )
         );

@@ -31,7 +31,8 @@ namespace tua{
             std::expected<Expr*,Error*>parse_str();
             std::expected<Expr*,Error*> parse_bool();
             std::expected<Expr*,Error*> parse_symbol();
-            std::expected<Expr*,Error*> parse_fctcall();
+            std::expected<Expr*,Error*> parse_fctcalls();
+            std::expected<Expr*,Error*> parse_fctcall(Expr* expr);
             Lexer<T> _lexer;
             std::optional<Token> current_token;
     };
@@ -116,7 +117,7 @@ namespace tua{
     }
 
 template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_factor(){
-    auto left_expr=parse_fctcall();
+    auto left_expr=parse_fctcalls();
     if (left_expr){
     switch(current_token.value().kind){
         case tua::TokenKind::STAR:{
@@ -143,38 +144,42 @@ template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_factor(){
     return left_expr;
 }
 
-template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcall(){
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcalls(){
     auto expr=parse_terminals();
-    if(!expr){
-        return expr;
-    }
-    auto args=std::vector<Expr*>();
-    if(match_token_kind(TokenKind::LEFT_PAREN)){
-        auto token=consume_token();
-        if(match_token_kind(TokenKind::RIGHT_PAREN)){
-            token=consume_token();
-            return new FctCall(std::move(expr.value()),std::move(args));
+    if(expr){
+        while(match_token_kind(TokenKind::LEFT_PAREN)){
+            expr=parse_fctcall(expr.value());
         }
+    }
+
+    return expr;
+}
+
+template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_fctcall(Expr* expr){
+    auto args=std::vector<Expr*>();
+    auto token=consume_token();
+    if(match_token_kind(TokenKind::RIGHT_PAREN)){
+        token=consume_token();
+        return new FctCall(expr,std::move(args));
+    }
+    auto arg=parse_expr();
+    if(!arg){
+        return arg;
+    }
+    args.push_back(arg.value());
+    while(!match_token_kind(TokenKind::RIGHT_PAREN)){
+        if(!match_token_kind(TokenKind::COMMA)){
+            return std::unexpected(new ParseError(std::string(", expected"),_lexer.get_line()));
+        }
+        auto rslt=consume_token();
         auto arg=parse_expr();
         if(!arg){
             return arg;
         }
-        args.push_back(std::move(arg.value()));
-        while(!match_token_kind(TokenKind::RIGHT_PAREN)){
-            if(!match_token_kind(TokenKind::COMMA)){
-                return std::unexpected(new ParseError(std::string(", expected"),_lexer.get_line()));
-            }
-            auto rslt=consume_token();
-            auto arg=parse_expr();
-            if(!arg){
-                return arg;
-            }
-            args.push_back(std::move(arg.value()));
-        }
-        auto rslt=consume_token();
-            return new FctCall(std::move(expr.value()),std::move(args));
+        args.push_back(arg.value());
     }
-    return expr;
+    auto rslt=consume_token();
+    return new FctCall(expr,std::move(args));
 }
 
 template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_terminals(){
