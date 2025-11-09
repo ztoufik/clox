@@ -7,17 +7,50 @@
 #include"lexer.h"
 
 namespace tua{
+
+
     struct Stmt{
         virtual ~Stmt(){}
+    };
+
+    using Stmts=std::vector<Stmt*>;
+
+    struct Expr:Stmt{
+        virtual ~Expr(){}
     };
 
     struct Assign:Stmt{
         virtual ~Assign(){}
     };
 
-    struct Expr:Stmt{
-        virtual ~Expr(){}
+    struct Block:Stmt{
+        public:
+            Block(Stmts&& stmts):stmts(std::move(stmts)){}
+            const Stmts& get_stmts() const noexcept {return stmts;}
+            virtual ~Block(){}
+        private:
+            Stmts stmts;
     };
+
+    struct IfElse:Stmt{
+        public:
+            const Stmt* get_if_stmt()const noexcept {return if_;}
+            const Stmt* get_else_stmt()const noexcept {return else_;}
+            const Expr* get_condtion_expr()const noexcept {return condition_;}
+        protected:
+            IfElse(Expr* condition,Block* left,Block* right):condition_(condition),if_(left),else_(right){}
+            virtual ~IfElse(){
+                if(!if_ && !else_ && !condition_){
+                    delete if_;
+                    delete else_;
+                    delete condition_;
+                }
+            }
+            Expr* condition_;
+            Block* if_;
+            Block* else_;
+    };
+
 
     struct BinExpr:Expr{
         public:
@@ -111,7 +144,6 @@ namespace tua{
         std::vector<Expr*> exprs_;
     };
 
-    using Stmts=std::vector<Stmt*>;
 
     struct Program{
         Program(Stmts&& stmts):stmts(stmts){}

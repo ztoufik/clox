@@ -360,6 +360,32 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
+class ParseBlockFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseBlockFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Block*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseBlock,
+        ParseBlockFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("{a();};")),
+            std::tuple(std::string_view("{a(test);};")),
+            std::tuple(std::string_view("{{a(test)+3;hello();};};"))
+            )
+        );
+
 class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
 };
 
@@ -381,7 +407,7 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("3"),ParseError(std::string("; expected"),0)),
             std::tuple(std::string_view("(3+0.1"),ParseError(std::string(") expected"),0)),
-            std::tuple(std::string_view("["),ParseError(std::string("unimplemented"),0)),
+            std::tuple(std::string_view("["),ParseError(std::string("unknown token"),0)),
             std::tuple(std::string_view("3;\n(3+0.1"),ParseError(std::string(") expected"),1)),
             std::tuple(std::string_view("3;\nfct(a b)"),ParseError(std::string(", expected"),1))
             )
