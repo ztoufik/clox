@@ -65,7 +65,7 @@ enum class TokenKind {
     NIL ,
     FUN ,
     RETURN ,
-    VAR ,
+    LET ,
 };
 
 struct Token {
@@ -124,7 +124,7 @@ const std::unordered_map<std::string,TokenKind> Lexer<T>::key_words={
     {std::string("super") ,TokenKind::SUPER},
     {std::string("this") ,TokenKind::THIS},
     {std::string("true") ,TokenKind::TRUE},
-    {std::string("var") ,TokenKind::VAR},
+    {std::string("let") ,TokenKind::LET},
     {std::string("while") ,TokenKind::WHILE},
 };
 

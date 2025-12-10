@@ -123,7 +123,7 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string("super") ,Token(TokenKind::SUPER,0)),
             std::tuple(std::string("this") ,Token(TokenKind::THIS,0)),
             std::tuple(std::string("true") ,Token(TokenKind::TRUE,0)),
-            std::tuple(std::string("var") ,Token(TokenKind::VAR,0)),
+            std::tuple(std::string("let") ,Token(TokenKind::LET,0)),
             std::tuple(std::string("while") ,Token(TokenKind::WHILE,0))
             )
         );
