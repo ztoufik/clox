@@ -28,6 +28,7 @@ enum class TokenKind {
     PLUS,
 
     COMMA,
+    COLLON,
     DOT,
     EQUAL,
     SEMICOLON,
@@ -204,6 +205,7 @@ template<typename T> Token Lexer<T>::get_token(){
         case '|':{consume();return Token(TokenKind::BIT_OR,current_line);}
         case '&':{consume();return Token(TokenKind::BIT_AND,current_line);}
         case ',':{consume();return Token(TokenKind::COMMA,current_line);}
+        case ':':{consume();return Token(TokenKind::COLLON,current_line);}
         case ';':{consume();return Token(TokenKind::SEMICOLON,current_line);}
         case '.':{consume();return Token(TokenKind::DOT,current_line);}
         case '+':{consume();return Token(TokenKind::PLUS,current_line);}

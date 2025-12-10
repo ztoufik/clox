@@ -8,7 +8,7 @@ using namespace tua;
 
 
 TEST(LexerTest, simple_token) {
-    auto lexer=Lexer<std::string_view>("(){}[],.;*/+-===!!=|&");
+    auto lexer=Lexer<std::string_view>("(){}[],:.;*/+-===!!=|&");
     auto tokens=std::vector{
             Token(TokenKind::LEFT_PAREN,0),
             Token(TokenKind::RIGHT_PAREN,0),
@@ -17,6 +17,7 @@ TEST(LexerTest, simple_token) {
             Token(TokenKind::LEFT_BRACKET,0),
             Token(TokenKind::RIGHT_BRACKET,0),
             Token(TokenKind::COMMA,0),
+            Token(TokenKind::COLLON,0),
             Token(TokenKind::DOT,0),
             Token(TokenKind::SEMICOLON,0),
             Token(TokenKind::STAR,0),
