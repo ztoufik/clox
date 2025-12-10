@@ -24,6 +24,7 @@ namespace tua{
             std::expected<Block*,Error*> parse_block();
             std::expected<IfElse*,Error*> parse_if();
             std::expected<WhileStmt*,Error*> parse_while();
+            std::expected<Return*,Error*> parse_return();
             std::expected<Expr*,Error*> parse_expr();
             std::expected<Expr*,Error*> parse_term();
             std::expected<Expr*,Error*> parse_factor();
@@ -79,6 +80,7 @@ namespace tua{
             case tua::TokenKind::LEFT_BRACE: return parse_block();
             case tua::TokenKind::IF: return parse_if();
             case tua::TokenKind::WHILE: return parse_while();
+            case tua::TokenKind::RETURN: return parse_return();
             default:{
                         auto expr= parse_expr();
                         if(!expr){
@@ -160,6 +162,15 @@ namespace tua{
             return std::unexpected(while_block.error());
         }
         return new WhileStmt(condi.value(),while_block.value());
+    }
+
+    template<typename T> std::expected<Return*,Error*> Parser<T>::parse_return(){
+        consume_token();
+        auto value=parse_expr();
+        if(!value){
+            return std::unexpected(value.error());
+        }
+        return new Return(value.value());
     }
 
     template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_expr(){

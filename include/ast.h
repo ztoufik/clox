@@ -73,6 +73,18 @@ namespace tua{
             Block* block_;
     };
 
+    struct Return:Stmt{
+            const Expr* get_value()const noexcept {return value_;}
+            Return(Expr* value):value_(value){}
+            virtual ~Return(){
+                if(!value_){
+                    delete value_;
+                }
+            }
+        protected:
+            Expr* value_;
+    };
+
     struct BinExpr:Expr{
         public:
             const Expr* get_left_expr()const noexcept {return left_;}
