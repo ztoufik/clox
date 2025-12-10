@@ -461,6 +461,32 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string_view("return 3+4;"))
             )
         );
+
+class ParseVarDeclInitFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseVarDeclInitFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<VarDeclInit*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseVarDeclInit,
+        ParseVarDeclInitFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("let a:type;")),
+            std::tuple(std::string_view("let b:b=3;"))
+            )
+        );
+
 class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
 };
 

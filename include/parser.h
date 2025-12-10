@@ -5,6 +5,7 @@
 #include<expected>
 #include<vector>
 #include<optional>
+#include<cstddef>
 
 #include"lexer.h"
 #include"ast.h"
@@ -24,6 +25,8 @@ namespace tua{
             std::expected<Block*,Error*> parse_block();
             std::expected<IfElse*,Error*> parse_if();
             std::expected<WhileStmt*,Error*> parse_while();
+            std::expected<VarDeclInit*,Error*> parse_vardeclinit();
+            std::expected<Type*,Error*> parse_type();
             std::expected<Return*,Error*> parse_return();
             std::expected<Expr*,Error*> parse_expr();
             std::expected<Expr*,Error*> parse_term();
@@ -80,6 +83,7 @@ namespace tua{
             case tua::TokenKind::LEFT_BRACE: return parse_block();
             case tua::TokenKind::IF: return parse_if();
             case tua::TokenKind::WHILE: return parse_while();
+            case tua::TokenKind::LET: return parse_vardeclinit();
             case tua::TokenKind::RETURN: return parse_return();
             default:{
                         auto expr= parse_expr();
@@ -162,6 +166,42 @@ namespace tua{
             return std::unexpected(while_block.error());
         }
         return new WhileStmt(condi.value(),while_block.value());
+    }
+
+    template<typename T> std::expected<Type*,Error*> Parser<T>::parse_type(){
+        auto ident=current_token.value().lexeme;
+        consume_token();
+        return new Type(std::move(ident));
+        }
+    template<typename T> std::expected<VarDeclInit*,Error*> Parser<T>::parse_vardeclinit(){
+        consume_token();
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("Ident expected",_lexer.get_line()));
+        }
+
+        auto ident=current_token.value().lexeme;
+        consume_token();
+
+        if(!match_token_kind(TokenKind::COLLON)){
+            return std::unexpected(new ParseError(": expected",_lexer.get_line()));
+        }
+        consume_token();
+
+        auto type=parse_type();
+        if(!type){
+            return std::unexpected(type.error());
+        }
+
+        if(!match_token_kind(TokenKind::EQUAL)){
+            return new VarDeclInit(std::move(ident),nullptr,type.value());
+        }
+
+        consume_token();
+        auto value=parse_expr();
+        if(!value){
+            return std::unexpected(value.error());
+        }
+            return new VarDeclInit(std::move(ident),value.value(),type.value());
     }
 
     template<typename T> std::expected<Return*,Error*> Parser<T>::parse_return(){

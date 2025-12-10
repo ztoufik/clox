@@ -8,6 +8,8 @@
 
 namespace tua{
 
+    using Type=std::string;
+
     struct Stmt{
         virtual ~Stmt(){}
     };
@@ -18,8 +20,19 @@ namespace tua{
         virtual ~Expr(){}
     };
 
-    struct Assign:Stmt{
-        virtual ~Assign(){}
+    struct VarDeclInit:Stmt{
+        VarDeclInit(std::string&& ident,Expr* value,Type* type):ident_(std::move(ident)),value_(value),type_(type){}
+        const Expr* get_value()const noexcept {return value_;}
+        const Type* get_type()const noexcept {return type_;}
+        const std::string& get_ident()const noexcept {return ident_;}
+        virtual ~VarDeclInit(){
+            if(!value_) delete value_;
+            if(!type_) delete type_;
+        }
+        protected:
+            Expr* value_;
+            Type* type_;
+            std::string ident_;
     };
 
     struct Block:Stmt{
