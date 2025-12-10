@@ -8,7 +8,6 @@
 
 namespace tua{
 
-
     struct Stmt{
         virtual ~Stmt(){}
     };
@@ -28,7 +27,7 @@ namespace tua{
             Block(Stmts&& stmts):stmts(std::move(stmts)){}
             const Stmts& get_stmts() const noexcept {return stmts;}
             virtual ~Block(){}
-        private:
+        protected:
             Stmts stmts;
     };
 
@@ -37,20 +36,42 @@ namespace tua{
             const Stmt* get_if_stmt()const noexcept {return if_;}
             const Stmt* get_else_stmt()const noexcept {return else_;}
             const Expr* get_condtion_expr()const noexcept {return condition_;}
-        protected:
             IfElse(Expr* condition,Block* left,Block* right):condition_(condition),if_(left),else_(right){}
             virtual ~IfElse(){
-                if(!if_ && !else_ && !condition_){
+                if(!if_){
                     delete if_;
+                }
+
+                if(!else_){
                     delete else_;
+                }
+
+                if(!condition_){
                     delete condition_;
                 }
             }
+        protected:
             Expr* condition_;
             Block* if_;
             Block* else_;
     };
 
+    struct WhileStmt:Stmt{
+            const Stmt* get_block_stmt()const noexcept {return block_;}
+            const Expr* get_condtion_expr()const noexcept {return condition_;}
+            WhileStmt(Expr* condition,Block* block):condition_(condition),block_(block){}
+            virtual ~WhileStmt(){
+                if(!block_ ){
+                    delete block_;
+                }
+                if(!condition_){
+                    delete condition_;
+                }
+            }
+        protected:
+            Expr* condition_;
+            Block* block_;
+    };
 
     struct BinExpr:Expr{
         public:

@@ -21,8 +21,9 @@ namespace tua{
             bool match_token_kind(TokenKind kind) const;
             std::expected<bool,Error*> consume_token();
             std::expected<Stmt*,Error*> parse_stmt();
-            std::expected<Stmt*,Error*> parse_block();
-            std::expected<Stmt*,Error*> parse_if();
+            std::expected<Block*,Error*> parse_block();
+            std::expected<IfElse*,Error*> parse_if();
+            std::expected<WhileStmt*,Error*> parse_while();
             std::expected<Expr*,Error*> parse_expr();
             std::expected<Expr*,Error*> parse_term();
             std::expected<Expr*,Error*> parse_factor();
@@ -76,6 +77,8 @@ namespace tua{
     template<typename T> std::expected<Stmt*,Error*> Parser<T>::parse_stmt(){
         switch(current_token.value().kind){
             case tua::TokenKind::LEFT_BRACE: return parse_block();
+            case tua::TokenKind::IF: return parse_if();
+            case tua::TokenKind::WHILE: return parse_while();
             default:{
                         auto expr= parse_expr();
                         if(!expr){
@@ -86,7 +89,7 @@ namespace tua{
         }
     }
 
-    template<typename T> std::expected<Stmt*,Error*> Parser<T>::parse_block(){
+    template<typename T> std::expected<Block*,Error*> Parser<T>::parse_block(){
         consume_token();
         auto stmts=std::vector<Stmt*>{};
         std::expected<Stmt*,Error*> stmt;
@@ -107,7 +110,7 @@ namespace tua{
         return new Block(std::move(stmts));
     }
 
-    template<typename T> std::expected<Stmt*,Error*> Parser<T>:: parse_if(){
+    template<typename T> std::expected<IfElse*,Error*> Parser<T>:: parse_if(){
         consume_token();
         if(!match_token_kind(TokenKind::LEFT_PAREN)){
             return std::unexpected(new ParseError("( expected",_lexer.get_line()));
@@ -129,13 +132,34 @@ namespace tua{
             return new IfElse(condi.value(),if_block.value(),nullptr);
         }
 
+        consume_token();
         auto else_block=parse_block();
         if(!else_block){
             return std::unexpected(else_block.error());
         }
-        consume_token();
         return new IfElse(condi.value(),if_block.value(),else_block.value());
 
+    }
+
+    template<typename T> std::expected<WhileStmt*,Error*> Parser<T>::parse_while(){
+        consume_token();
+        if(!match_token_kind(TokenKind::LEFT_PAREN)){
+            return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        }
+        consume_token();
+        auto condi=parse_expr();
+        if(!condi){
+            return std::unexpected(condi.error());
+        }
+        if(!match_token_kind(TokenKind::RIGHT_PAREN)){
+            return std::unexpected(new ParseError(") expected",_lexer.get_line()));
+        }
+        consume_token();
+        auto while_block=parse_block();
+        if(!while_block){
+            return std::unexpected(while_block.error());
+        }
+        return new WhileStmt(condi.value(),while_block.value());
     }
 
     template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_expr(){

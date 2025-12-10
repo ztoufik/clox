@@ -386,6 +386,57 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
+class ParseIfElseFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseIfElseFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<IfElse*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseIfElse,
+        ParseIfElseFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("if(a){a();};")),
+            std::tuple(std::string_view("if(a){a();}else{test+3;};"))
+            )
+        );
+
+class ParseWhileFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseWhileFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<WhileStmt*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseWhile,
+        ParseWhileFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("while(a){a();};")),
+            std::tuple(std::string_view("while(a){a();};"))
+            )
+        );
+
+
 class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
 };
 
