@@ -9,6 +9,7 @@
 namespace tua{
 
     using Type=std::string;
+    using Params=std::vector<std::tuple<std::string,Type>>;
 
     struct Stmt{
         virtual ~Stmt(){}
@@ -198,6 +199,16 @@ namespace tua{
         FctCall& operator=(FctCall&&)=default;
         Expr* expr_;
         std::vector<Expr*> exprs_;
+    };
+
+    struct FctExpr:Expr{
+        FctExpr(Type* return_type,std::vector<std::tuple<std::string,Type>>&& params):ret_type(return_type),params_(std::move(params)){}
+        FctExpr(const FctExpr&)=default;
+        FctExpr(FctExpr&&)=default;
+        FctExpr& operator=(const FctExpr&)=default;
+        FctExpr& operator=(FctExpr&&)=default;
+        Type* ret_type;
+        Params params_ ;
     };
 
 

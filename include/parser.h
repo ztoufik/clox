@@ -36,6 +36,7 @@ namespace tua{
             std::expected<Expr*,Error*> parse_double();
             std::expected<Expr*,Error*>parse_str();
             std::expected<Expr*,Error*> parse_bool();
+            std::expected<Expr*,Error*> parse_fct_expr();
             std::expected<Expr*,Error*> parse_symbol_assign();
             std::expected<Expr*,Error*> parse_fctcalls();
             std::expected<Expr*,Error*> parse_fctcall(Expr* expr);
@@ -171,7 +172,7 @@ namespace tua{
         auto ident=current_token.value().lexeme;
         consume_token();
         return new Type(std::move(ident));
-        }
+    }
     template<typename T> std::expected<VarDeclInit*,Error*> Parser<T>::parse_vardeclinit(){
         consume_token();
         if(!match_token_kind(TokenKind::IDENT)){
@@ -200,7 +201,7 @@ namespace tua{
         if(!value){
             return std::unexpected(value.error());
         }
-            return new VarDeclInit(std::move(ident),value.value(),type.value());
+        return new VarDeclInit(std::move(ident),value.value(),type.value());
     }
 
     template<typename T> std::expected<Return*,Error*> Parser<T>::parse_return(){
@@ -321,6 +322,7 @@ namespace tua{
 
             case TokenKind::LEFT_PAREN: return parse_group();
             case TokenKind::IDENT: return parse_symbol_assign();
+            case TokenKind::FUN: return parse_fct_expr();
 
             default: break;
         };
@@ -357,6 +359,51 @@ namespace tua{
         bool value=(tkind==TokenKind::TRUE)?true:false;
         consume_token();
         return new Bool(value);
+    }
+
+    template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_fct_expr(){
+        consume_token();
+        auto ret_type=parse_type();
+       if(!ret_type){
+            return std::unexpected(ret_type.error());
+        }
+
+        if(!match_token_kind(TokenKind::LEFT_PAREN)){
+            return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        }
+        consume_token();
+        Params params;
+        uint16_t params_count=128;
+        while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
+            auto ident=current_token.value().lexeme;
+            consume_token();
+
+            if(!match_token_kind(TokenKind::COLLON)){
+                return std::unexpected(new ParseError("missing : ",_lexer.get_line()));
+            }
+            consume_token();
+
+            auto type=parse_type();
+            if(!type){
+                return std::unexpected(type.error());
+            }
+            auto tuple=std::make_tuple(std::move(ident),std::move(*type.value()));
+            params.push_back(tuple);
+
+            if(!match_token_kind(TokenKind::COMMA)){
+                return std::unexpected(new ParseError("missing , ",_lexer.get_line()));
+            }
+            consume_token();
+
+            params_count--;
+        }
+
+        if(!params_count){
+            return std::unexpected(new ParseError("missing ) or overexceed params count",_lexer.get_line()));
+        }
+        consume_token();
+
+        return new FctExpr(ret_type.value(),std::move(params));
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_str(){
