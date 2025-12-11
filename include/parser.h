@@ -132,6 +132,9 @@ namespace tua{
             return std::unexpected(new ParseError(") expected",_lexer.get_line()));
         }
         consume_token();
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+        }
         auto if_block=parse_block();
         if(!if_block){
             return std::unexpected(if_block.error());
@@ -141,6 +144,9 @@ namespace tua{
         }
 
         consume_token();
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+        }
         auto else_block=parse_block();
         if(!else_block){
             return std::unexpected(else_block.error());
@@ -150,7 +156,6 @@ namespace tua{
     }
 
     template<typename T> std::expected<FctDecl*,Error*> Parser<T>::parse_fct_decl(){
-
         consume_token();
         auto ret_type=parse_type();
         if(!ret_type){
@@ -195,7 +200,16 @@ namespace tua{
         }
         consume_token();
 
-        return new FctDecl(ret_type.value(),std::move(name),std::move(params));
+            if(!match_token_kind(TokenKind::LEFT_BRACE)){
+                return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            }
+
+        auto block=parse_block();
+        if(!block){
+                return std::unexpected(block.error());
+        }
+
+        return new FctDecl(ret_type.value(),std::move(name),std::move(params),block.value());
     }
 
     template<typename T> std::expected<WhileStmt*,Error*> Parser<T>::parse_while(){
@@ -212,6 +226,9 @@ namespace tua{
             return std::unexpected(new ParseError(") expected",_lexer.get_line()));
         }
         consume_token();
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+        }
         auto while_block=parse_block();
         if(!while_block){
             return std::unexpected(while_block.error());
@@ -415,7 +432,7 @@ namespace tua{
     template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_fct_expr(){
         consume_token();
         auto ret_type=parse_type();
-       if(!ret_type){
+        if(!ret_type){
             return std::unexpected(ret_type.error());
         }
 
@@ -454,7 +471,16 @@ namespace tua{
         }
         consume_token();
 
-        return new FctExpr(ret_type.value(),std::move(params));
+            if(!match_token_kind(TokenKind::LEFT_BRACE)){
+                return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            }
+
+        auto block=parse_block();
+        if(!block){
+                return std::unexpected(block.error());
+        }
+
+        return new FctExpr(ret_type.value(),std::move(params),block.value());
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_str(){

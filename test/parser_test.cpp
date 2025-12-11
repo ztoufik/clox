@@ -404,9 +404,9 @@ INSTANTIATE_TEST_SUITE_P(
         ParseFctExpr,
         ParseFctExprFixt,
         ::testing::Values(
-            std::tuple(std::string_view("lambda test ();")),
-            std::tuple(std::string_view("lambda hello(a:b,);")),
-            std::tuple(std::string_view("lambda toufik(a:b,b:c,);"))
+            std::tuple(std::string_view("lambda test (){3+3;};")),
+            std::tuple(std::string_view("lambda hello(a:b,){let a:int=4;};")),
+            std::tuple(std::string_view("lambda hello(a:b,c:test,){let a:int=c;};"))
             )
         );
 
@@ -557,9 +557,9 @@ INSTANTIATE_TEST_SUITE_P(
         ParseFctDecl,
         ParseFctDeclFixt,
         ::testing::Values(
-            std::tuple(std::string_view("fun int test();")),
-            std::tuple(std::string_view("fun int hello(a:b,);")),
-            std::tuple(std::string_view("fun int toufik(a:b,b:c,);"))
+            std::tuple(std::string_view("fun int test(){a=b;};")),
+            std::tuple(std::string_view("fun int hello(a:b,){a+3*3;};")),
+            std::tuple(std::string_view("fun int toufik(a:b,b:c,){return a+b;};"))
             )
         );
 

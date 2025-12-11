@@ -21,9 +21,18 @@ namespace tua{
         virtual ~Expr(){}
     };
 
+    struct Block:Stmt{
+        public:
+            Block(Stmts&& stmts):stmts(std::move(stmts)){}
+            const Stmts& get_stmts() const noexcept {return stmts;}
+            virtual ~Block(){}
+        protected:
+            Stmts stmts;
+    };
+
     struct FctDecl:Stmt{
-        FctDecl(Type* return_type,std::string&& name,std::vector<std::tuple<std::string,Type>>&& params):
-            ret_type_(return_type),name_(std::move(name)),params_(std::move(params)){}
+        FctDecl(Type* return_type,std::string&& name,std::vector<std::tuple<std::string,Type>>&& params,Block* block):
+            ret_type_(return_type),name_(std::move(name)),params_(std::move(params)),block_(block){}
         FctDecl(const FctDecl&)=default;
         FctDecl(FctDecl&&)=default;
         FctDecl& operator=(const FctDecl&)=default;
@@ -31,6 +40,7 @@ namespace tua{
         std::string name_;
         Type* ret_type_;
         Params params_ ;
+        Block* block_;
     };
 
     struct VarDeclInit:Stmt{
@@ -48,14 +58,6 @@ namespace tua{
             std::string ident_;
     };
 
-    struct Block:Stmt{
-        public:
-            Block(Stmts&& stmts):stmts(std::move(stmts)){}
-            const Stmts& get_stmts() const noexcept {return stmts;}
-            virtual ~Block(){}
-        protected:
-            Stmts stmts;
-    };
 
     struct IfElse:Stmt{
         public:
@@ -214,13 +216,15 @@ namespace tua{
     };
 
     struct FctExpr:Expr{
-        FctExpr(Type* return_type,std::vector<std::tuple<std::string,Type>>&& params):ret_type(return_type),params_(std::move(params)){}
+        FctExpr(Type* return_type,Params&& params,Block* block):
+            ret_type(return_type),params_(std::move(params)),block_(block){}
         FctExpr(const FctExpr&)=default;
         FctExpr(FctExpr&&)=default;
         FctExpr& operator=(const FctExpr&)=default;
         FctExpr& operator=(FctExpr&&)=default;
         Type* ret_type;
         Params params_ ;
+        Block* block_;
     };
 
 
