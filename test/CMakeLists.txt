@@ -13,6 +13,7 @@ FetchContent_MakeAvailable(gtest)
 file(GLOB SOURCES *.cpp)
 
 add_executable( lexer_unit_tests "lexer_test.cpp")
+target_compile_options(lexer_unit_tests PRIVATE -w)
 target_link_libraries(lexer_unit_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
 # automatic discovery of lexer unit tests
@@ -24,6 +25,7 @@ gtest_discover_tests(lexer_unit_tests
   )
 
 add_executable(parser_unit_tests "parser_test.cpp")
+target_compile_options(parser_unit_tests PRIVATE -w)
 target_link_libraries(parser_unit_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
 # automatic discovery of parser unit tests
