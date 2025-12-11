@@ -180,6 +180,16 @@ namespace tua{
         bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
     };
 
+    struct Assign:Expr{
+        Assign(std::string&& ident,Expr* value):ident_(std::move(ident)),value_(value){}
+        Assign(const Assign&)=default;
+        Assign(Assign&&)=default;
+        Assign& operator=(const Assign&)=default;
+        Assign& operator=(Assign&&)=default;
+        std::string ident_;
+        Expr* value_;
+    };
+
     struct FctCall:Expr{
         FctCall(Expr* expr,std::vector<Expr*>&& exprs):expr_(expr),exprs_(std::move(exprs)){}
         FctCall(const FctCall&)=default;

@@ -328,6 +328,30 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
+class ParseAssignFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseAssignFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<Assign*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseAssign,
+        ParseAssignFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("a=3;")),
+            std::tuple(std::string_view("b=a=3;"))
+            )
+        );
 
 class ParsefctcallFixt : public ::testing::TestWithParam<std::tuple<std::string_view,FctCall>> {
 };

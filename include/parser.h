@@ -5,7 +5,6 @@
 #include<expected>
 #include<vector>
 #include<optional>
-#include<cstddef>
 
 #include"lexer.h"
 #include"ast.h"
@@ -37,7 +36,7 @@ namespace tua{
             std::expected<Expr*,Error*> parse_double();
             std::expected<Expr*,Error*>parse_str();
             std::expected<Expr*,Error*> parse_bool();
-            std::expected<Expr*,Error*> parse_symbol();
+            std::expected<Expr*,Error*> parse_symbol_assign();
             std::expected<Expr*,Error*> parse_fctcalls();
             std::expected<Expr*,Error*> parse_fctcall(Expr* expr);
             Lexer<T> _lexer;
@@ -321,7 +320,7 @@ namespace tua{
             case TokenKind::TRUE: return parse_bool();
 
             case TokenKind::LEFT_PAREN: return parse_group();
-            case TokenKind::IDENT: return parse_symbol();
+            case TokenKind::IDENT: return parse_symbol_assign();
 
             default: break;
         };
@@ -343,48 +342,42 @@ namespace tua{
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_int(){
         int value=std::atoi(current_token.value().lexeme.c_str());
-        auto rslt=consume_token();
-        if(rslt){
-            return new Int(value);
-        }
-        return std::unexpected(rslt.error());
+        consume_token();
+        return new Int(value);
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_double(){
         double value=std::stod(current_token.value().lexeme.c_str());
-        auto rslt=consume_token();
-        if(rslt){
-            return new Double(value);
-        }
-        return std::unexpected(rslt.error());
+        consume_token();
+        return new Double(value);
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_bool(){
         TokenKind tkind=current_token.value().kind;
         bool value=(tkind==TokenKind::TRUE)?true:false;
-        auto rslt=consume_token();
-        if(rslt){
-            return new Bool(value);
-        }
-        return std::unexpected(rslt.error());
+        consume_token();
+        return new Bool(value);
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_str(){
         auto value=current_token.value().lexeme;
-        auto rslt=consume_token();
-        if(rslt){
-            return new Str(value);
-        }
-        return std::unexpected(rslt.error());
+        consume_token();
+        return new Str(value);
     }
 
-    template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_symbol(){
-        auto sym_name=current_token.value().lexeme;
-        auto rslt=consume_token();
-        if(!rslt){
-            return std::unexpected(rslt.error());
+    template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_symbol_assign(){
+        auto ident=current_token.value().lexeme;
+        consume_token();
+        if(!match_token_kind(TokenKind::EQUAL)){
+            return new Symbol(std::move(ident));
         }
-        return new Symbol(std::move(sym_name));
+        consume_token();
+        auto value=parse_expr();
+        if(!value){
+            return value;
+        }
+        return new Assign(std::move(ident),value.value());
+
     }
 
     template<typename T> bool Parser<T>::at_end() const noexcept {return match_token_kind(TokenKind::Eof);}
