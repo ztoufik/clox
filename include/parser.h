@@ -322,7 +322,7 @@ namespace tua{
 
             case TokenKind::LEFT_PAREN: return parse_group();
             case TokenKind::IDENT: return parse_symbol_assign();
-            case TokenKind::FUN: return parse_fct_expr();
+            case TokenKind::LAMBDA: return parse_fct_expr();
 
             default: break;
         };

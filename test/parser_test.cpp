@@ -404,9 +404,9 @@ INSTANTIATE_TEST_SUITE_P(
         ParseFctExpr,
         ParseFctExprFixt,
         ::testing::Values(
-            std::tuple(std::string_view("fun test();")),
-            std::tuple(std::string_view("fun hello(a:b,);")),
-            std::tuple(std::string_view("fun toufik(a:b,b:c,);"))
+            std::tuple(std::string_view("lambda test();")),
+            std::tuple(std::string_view("lambda hello(a:b,);")),
+            std::tuple(std::string_view("lambda toufik(a:b,b:c,);"))
             )
         );
 
