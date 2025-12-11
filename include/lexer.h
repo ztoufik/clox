@@ -65,6 +65,7 @@ enum class TokenKind {
     ELSE ,
     NIL ,
     FUN ,
+    LAMBDA ,
     RETURN ,
     LET ,
 };
@@ -117,6 +118,7 @@ const std::unordered_map<std::string,TokenKind> Lexer<T>::key_words={
     {std::string("else") ,TokenKind::ELSE},
     {std::string("false") ,TokenKind::FALSE},
     {std::string("fun") ,TokenKind::FUN},
+    {std::string("lambda") ,TokenKind::LAMBDA},
     {std::string("for") ,TokenKind::FOR},
     {std::string("if") ,TokenKind::IF},
     {std::string("nil") ,TokenKind::NIL},

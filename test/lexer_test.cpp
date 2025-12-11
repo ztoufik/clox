@@ -116,6 +116,7 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string("else") ,Token(TokenKind::ELSE,0)),
             std::tuple(std::string("false") ,Token(TokenKind::FALSE,0)),
             std::tuple(std::string("fun") ,Token(TokenKind::FUN,0)),
+            std::tuple(std::string("lambda") ,Token(TokenKind::LAMBDA,0)),
             std::tuple(std::string("for") ,Token(TokenKind::FOR,0)),
             std::tuple(std::string("if") ,Token(TokenKind::IF,0)),
             std::tuple(std::string("nil") ,Token(TokenKind::NIL,0)),
