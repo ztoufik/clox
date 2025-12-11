@@ -404,7 +404,7 @@ INSTANTIATE_TEST_SUITE_P(
         ParseFctExpr,
         ParseFctExprFixt,
         ::testing::Values(
-            std::tuple(std::string_view("lambda test();")),
+            std::tuple(std::string_view("lambda test ();")),
             std::tuple(std::string_view("lambda hello(a:b,);")),
             std::tuple(std::string_view("lambda toufik(a:b,b:c,);"))
             )
@@ -534,6 +534,32 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string_view("let a:type;")),
             std::tuple(std::string_view("let b:b=3;"))
+            )
+        );
+
+class ParseFctDeclFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseFctDeclFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<FctDecl*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseFctDecl,
+        ParseFctDeclFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("fun int test();")),
+            std::tuple(std::string_view("fun int hello(a:b,);")),
+            std::tuple(std::string_view("fun int toufik(a:b,b:c,);"))
             )
         );
 

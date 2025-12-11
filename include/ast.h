@@ -21,6 +21,18 @@ namespace tua{
         virtual ~Expr(){}
     };
 
+    struct FctDecl:Stmt{
+        FctDecl(Type* return_type,std::string&& name,std::vector<std::tuple<std::string,Type>>&& params):
+            ret_type_(return_type),name_(std::move(name)),params_(std::move(params)){}
+        FctDecl(const FctDecl&)=default;
+        FctDecl(FctDecl&&)=default;
+        FctDecl& operator=(const FctDecl&)=default;
+        FctDecl& operator=(FctDecl&&)=default;
+        std::string name_;
+        Type* ret_type_;
+        Params params_ ;
+    };
+
     struct VarDeclInit:Stmt{
         VarDeclInit(std::string&& ident,Expr* value,Type* type):ident_(std::move(ident)),value_(value),type_(type){}
         const Expr* get_value()const noexcept {return value_;}

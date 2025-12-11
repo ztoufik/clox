@@ -23,6 +23,7 @@ namespace tua{
             std::expected<Stmt*,Error*> parse_stmt();
             std::expected<Block*,Error*> parse_block();
             std::expected<IfElse*,Error*> parse_if();
+            std::expected<FctDecl*,Error*> parse_fct_decl();
             std::expected<WhileStmt*,Error*> parse_while();
             std::expected<VarDeclInit*,Error*> parse_vardeclinit();
             std::expected<Type*,Error*> parse_type();
@@ -83,6 +84,7 @@ namespace tua{
             case tua::TokenKind::LEFT_BRACE: return parse_block();
             case tua::TokenKind::IF: return parse_if();
             case tua::TokenKind::WHILE: return parse_while();
+            case tua::TokenKind::FUN: return parse_fct_decl();
             case tua::TokenKind::LET: return parse_vardeclinit();
             case tua::TokenKind::RETURN: return parse_return();
             default:{
@@ -145,6 +147,55 @@ namespace tua{
         }
         return new IfElse(condi.value(),if_block.value(),else_block.value());
 
+    }
+
+    template<typename T> std::expected<FctDecl*,Error*> Parser<T>::parse_fct_decl(){
+
+        consume_token();
+        auto ret_type=parse_type();
+        if(!ret_type){
+            return std::unexpected(ret_type.error());
+        }
+
+        std::string name=current_token.value().lexeme;
+        consume_token();
+
+        if(!match_token_kind(TokenKind::LEFT_PAREN)){
+            return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        }
+        consume_token();
+        Params params;
+        uint16_t params_count=128;
+        while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
+            auto ident=current_token.value().lexeme;
+            consume_token();
+
+            if(!match_token_kind(TokenKind::COLLON)){
+                return std::unexpected(new ParseError("missing : ",_lexer.get_line()));
+            }
+            consume_token();
+
+            auto type=parse_type();
+            if(!type){
+                return std::unexpected(type.error());
+            }
+            auto tuple=std::make_tuple(std::move(ident),std::move(*type.value()));
+            params.push_back(tuple);
+
+            if(!match_token_kind(TokenKind::COMMA)){
+                return std::unexpected(new ParseError("missing , ",_lexer.get_line()));
+            }
+            consume_token();
+
+            params_count--;
+        }
+
+        if(!params_count){
+            return std::unexpected(new ParseError("missing ) or overexceed params count",_lexer.get_line()));
+        }
+        consume_token();
+
+        return new FctDecl(ret_type.value(),std::move(name),std::move(params));
     }
 
     template<typename T> std::expected<WhileStmt*,Error*> Parser<T>::parse_while(){
