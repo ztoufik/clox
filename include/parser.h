@@ -24,6 +24,7 @@ namespace tua{
             std::expected<Block*,Error*> parse_block();
             std::expected<IfElse*,Error*> parse_if();
             std::expected<FctDecl*,Error*> parse_fct_decl();
+            std::expected<ClassStmt*,Error*> parse_class();
             std::expected<WhileStmt*,Error*> parse_while();
             std::expected<VarDeclInit*,Error*> parse_vardeclinit();
             std::expected<Type*,Error*> parse_type();
@@ -85,6 +86,7 @@ namespace tua{
             case tua::TokenKind::IF: return parse_if();
             case tua::TokenKind::WHILE: return parse_while();
             case tua::TokenKind::FUN: return parse_fct_decl();
+            case tua::TokenKind::CLASS: return parse_class();
             case tua::TokenKind::LET: return parse_vardeclinit();
             case tua::TokenKind::RETURN: return parse_return();
             default:{
@@ -200,16 +202,43 @@ namespace tua{
         }
         consume_token();
 
-            if(!match_token_kind(TokenKind::LEFT_BRACE)){
-                return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
-            }
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+        }
 
         auto block=parse_block();
         if(!block){
-                return std::unexpected(block.error());
+            return std::unexpected(block.error());
         }
 
         return new FctDecl(ret_type.value(),std::move(name),std::move(params),block.value());
+    }
+
+    template<typename T> std::expected<ClassStmt*,Error*> Parser<T>::parse_class(){
+        consume_token();
+        std::string ident=current_token.value().lexeme;
+        consume_token();
+        Type* type=nullptr;
+
+        if(match_token_kind(TokenKind::COLLON)){
+            consume_token();
+
+            auto op_type=parse_type();
+            if(!op_type){
+                return std::unexpected(new ParseError("couldn't parse class parent type ",_lexer.get_line()));
+            }
+            type=op_type.value();
+        }
+
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        }
+
+        auto block=parse_block();
+        if(!block){
+            return std::unexpected(new ParseError("couldn't parse class body",_lexer.get_line()));
+        }
+        return new ClassStmt(std::move(ident),type,block.value());
     }
 
     template<typename T> std::expected<WhileStmt*,Error*> Parser<T>::parse_while(){
@@ -471,13 +500,13 @@ namespace tua{
         }
         consume_token();
 
-            if(!match_token_kind(TokenKind::LEFT_BRACE)){
-                return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
-            }
+        if(!match_token_kind(TokenKind::LEFT_BRACE)){
+            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+        }
 
         auto block=parse_block();
         if(!block){
-                return std::unexpected(block.error());
+            return std::unexpected(block.error());
         }
 
         return new FctExpr(ret_type.value(),std::move(params),block.value());

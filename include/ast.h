@@ -26,8 +26,16 @@ namespace tua{
             Block(Stmts&& stmts):stmts(std::move(stmts)){}
             const Stmts& get_stmts() const noexcept {return stmts;}
             virtual ~Block(){}
-        protected:
             Stmts stmts;
+    };
+
+    struct ClassStmt:Stmt{
+        public:
+            ClassStmt(std::string&& ident,Type* parent,Block* block):ident_(std::move(ident)),parent_(parent),block_(block){}
+            virtual ~ClassStmt(){}
+            std::string ident_;
+            Type* parent_;
+            Block* block_;
     };
 
     struct FctDecl:Stmt{
@@ -37,6 +45,15 @@ namespace tua{
         FctDecl(FctDecl&&)=default;
         FctDecl& operator=(const FctDecl&)=default;
         FctDecl& operator=(FctDecl&&)=default;
+        virtual ~FctDecl(){
+            if(! ret_type_){
+                delete ret_type_;
+            }
+
+            if(! block_){
+                delete block_;
+            }
+        }
         std::string name_;
         Type* ret_type_;
         Params params_ ;
@@ -52,12 +69,10 @@ namespace tua{
             if(!value_) delete value_;
             if(!type_) delete type_;
         }
-        protected:
             Expr* value_;
             Type* type_;
             std::string ident_;
     };
-
 
     struct IfElse:Stmt{
         public:
@@ -78,7 +93,6 @@ namespace tua{
                     delete condition_;
                 }
             }
-        protected:
             Expr* condition_;
             Block* if_;
             Block* else_;
@@ -96,7 +110,6 @@ namespace tua{
                     delete condition_;
                 }
             }
-        protected:
             Expr* condition_;
             Block* block_;
     };
@@ -109,7 +122,6 @@ namespace tua{
                     delete value_;
                 }
             }
-        protected:
             Expr* value_;
     };
 
@@ -117,7 +129,6 @@ namespace tua{
         public:
             const Expr* get_left_expr()const noexcept {return left_;}
             const Expr* get_right_expr()const noexcept {return right_;}
-        protected:
             BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
             virtual ~BinExpr(){
                 if(!left_ && !right_){
@@ -132,7 +143,6 @@ namespace tua{
     struct UnaryExpr:Expr{
         public:
             const Expr* get_expr()const noexcept {return expr_;}
-        protected:
             UnaryExpr(Expr* expr):expr_(expr){}
             virtual ~UnaryExpr(){
                 if(!expr_){

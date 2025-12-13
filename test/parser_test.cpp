@@ -563,6 +563,33 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
+class ParseClassStmtFixt : public ::testing::TestWithParam<std::tuple<std::string_view>> {
+};
+
+TEST_P(ParseClassStmtFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    auto lexer=Lexer<std::string_view>(std::move(src));
+    Parser parser(Parser(std::move(lexer)));
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<ClassStmt*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        ParseClassStmt,
+        ParseClassStmtFixt,
+        ::testing::Values(
+            std::tuple(std::string_view("class test{};")),
+            std::tuple(std::string_view("class test:parent{};")),
+            std::tuple(std::string_view("class test:parent{fun ret fct(){3;};};")),
+            std::tuple(std::string_view("class test:parent{class test2{};};"))
+            )
+        );
+
 class ParseErrorFixt : public ::testing::TestWithParam<std::tuple<std::string_view,ParseError>> {
 };
 
