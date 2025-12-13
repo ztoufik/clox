@@ -55,7 +55,7 @@ namespace tua{
             return std::unexpected(new ParseError("unrecognized token found",_lexer.get_line()));
         }
         if(match_token_kind(TokenKind::Eof)){
-            return std::unexpected(new ParseError("unrecognized token found",_lexer.get_line()));
+            return std::unexpected(new ParseError("end of token stream",_lexer.get_line()));
         }
         current_token=_lexer.get_token();
         return true;
@@ -135,7 +135,7 @@ namespace tua{
         }
         consume_token();
         if(!match_token_kind(TokenKind::LEFT_BRACE)){
-            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
         }
         auto if_block=parse_block();
         if(!if_block){
@@ -147,7 +147,7 @@ namespace tua{
 
         consume_token();
         if(!match_token_kind(TokenKind::LEFT_BRACE)){
-            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
         }
         auto else_block=parse_block();
         if(!else_block){
@@ -178,7 +178,7 @@ namespace tua{
             consume_token();
 
             if(!match_token_kind(TokenKind::COLLON)){
-                return std::unexpected(new ParseError("missing : ",_lexer.get_line()));
+                return std::unexpected(new ParseError(": expected",_lexer.get_line()));
             }
             consume_token();
 
@@ -190,7 +190,7 @@ namespace tua{
             params.push_back(tuple);
 
             if(!match_token_kind(TokenKind::COMMA)){
-                return std::unexpected(new ParseError("missing , ",_lexer.get_line()));
+                return std::unexpected(new ParseError(", expected",_lexer.get_line()));
             }
             consume_token();
 
@@ -198,12 +198,12 @@ namespace tua{
         }
 
         if(!params_count){
-            return std::unexpected(new ParseError("missing ) or overexceed params count",_lexer.get_line()));
+            return std::unexpected(new ParseError(") expected or overexceed params count",_lexer.get_line()));
         }
         consume_token();
 
         if(!match_token_kind(TokenKind::LEFT_BRACE)){
-            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
         }
 
         auto block=parse_block();
@@ -256,7 +256,7 @@ namespace tua{
         }
         consume_token();
         if(!match_token_kind(TokenKind::LEFT_BRACE)){
-            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
         }
         auto while_block=parse_block();
         if(!while_block){
@@ -392,7 +392,7 @@ namespace tua{
             args.push_back(arg.value());
             while(!match_token_kind(TokenKind::RIGHT_PAREN)){
                 if(!match_token_kind(TokenKind::COMMA)){
-                    return std::unexpected(new ParseError(std::string(", expected"),_lexer.get_line()));
+                    return std::unexpected(new ParseError(", expected",_lexer.get_line()));
                 }
                 consume_token();
                 arg=parse_expr();
@@ -476,7 +476,7 @@ namespace tua{
             consume_token();
 
             if(!match_token_kind(TokenKind::COLLON)){
-                return std::unexpected(new ParseError("missing : ",_lexer.get_line()));
+                return std::unexpected(new ParseError(": expected ",_lexer.get_line()));
             }
             consume_token();
 
@@ -488,7 +488,7 @@ namespace tua{
             params.push_back(tuple);
 
             if(!match_token_kind(TokenKind::COMMA)){
-                return std::unexpected(new ParseError("missing , ",_lexer.get_line()));
+                return std::unexpected(new ParseError(", expected ",_lexer.get_line()));
             }
             consume_token();
 
@@ -496,12 +496,12 @@ namespace tua{
         }
 
         if(!params_count){
-            return std::unexpected(new ParseError("missing ) or overexceed params count",_lexer.get_line()));
+            return std::unexpected(new ParseError(") expected or overexceed params count",_lexer.get_line()));
         }
         consume_token();
 
         if(!match_token_kind(TokenKind::LEFT_BRACE)){
-            return std::unexpected(new ParseError("missing { ",_lexer.get_line()));
+            return std::unexpected(new ParseError("{ expected ",_lexer.get_line()));
         }
 
         auto block=parse_block();
