@@ -12,6 +12,8 @@
 
 namespace tua{
 
+    const uint16_t MAX_PARAMS=128;
+
     template<typename T>class Parser{
         public:
             Parser(Lexer<T>&& lexer);
@@ -159,34 +161,44 @@ namespace tua{
 
     template<typename T> std::expected<FctDecl*,Error*> Parser<T>::parse_fct_decl(){
         consume_token();
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("return type identifier expected ",_lexer.get_line()));
+        }
         auto ret_type=parse_type();
         if(!ret_type){
             return std::unexpected(ret_type.error());
         }
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("function identifier expected",_lexer.get_line()));
+        }
 
-        std::string name=current_token.value().lexeme;
-        consume_token();
+        auto ident=parse_symbol_assign();
 
         if(!match_token_kind(TokenKind::LEFT_PAREN)){
             return std::unexpected(new ParseError("( expected",_lexer.get_line()));
         }
         consume_token();
         Params params;
-        uint16_t params_count=128;
+        uint16_t params_count=MAX_PARAMS;
         while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
-            auto ident=current_token.value().lexeme;
-            consume_token();
+            if(!match_token_kind(TokenKind::IDENT)){
+                return std::unexpected(new ParseError("parameter identifier expected",_lexer.get_line()));
+            }
+            auto param=parse_symbol_assign();
 
             if(!match_token_kind(TokenKind::COLLON)){
                 return std::unexpected(new ParseError(": expected",_lexer.get_line()));
             }
             consume_token();
 
+            if(!match_token_kind(TokenKind::IDENT)){
+                return std::unexpected(new ParseError("type identifier expected",_lexer.get_line()));
+            }
             auto type=parse_type();
             if(!type){
                 return std::unexpected(type.error());
             }
-            auto tuple=std::make_tuple(std::move(ident),std::move(*type.value()));
+            auto tuple=std::make_tuple((Symbol*)param.value(),type.value());
             params.push_back(tuple);
 
             if(!match_token_kind(TokenKind::COMMA)){
@@ -211,22 +223,24 @@ namespace tua{
             return std::unexpected(block.error());
         }
 
-        return new FctDecl(ret_type.value(),std::move(name),std::move(params),block.value());
+        return new FctDecl(ret_type.value(),(Symbol*)(ident.value()),std::move(params),block.value());
     }
 
     template<typename T> std::expected<ClassStmt*,Error*> Parser<T>::parse_class(){
         consume_token();
-        std::string ident=current_token.value().lexeme;
-        consume_token();
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("class identifier expected",_lexer.get_line()));
+        }
+        auto ident=parse_symbol_assign();
+
         Type* type=nullptr;
 
         if(match_token_kind(TokenKind::COLLON)){
             consume_token();
-
-            auto op_type=parse_type();
-            if(!op_type){
-                return std::unexpected(new ParseError("couldn't parse class parent type ",_lexer.get_line()));
+            if(!match_token_kind(TokenKind::IDENT)){
+                return std::unexpected(new ParseError("parent class identifier expected",_lexer.get_line()));
             }
+            auto op_type=parse_type();
             type=op_type.value();
         }
 
@@ -238,7 +252,8 @@ namespace tua{
         if(!block){
             return std::unexpected(new ParseError("couldn't parse class body",_lexer.get_line()));
         }
-        return new ClassStmt(std::move(ident),type,block.value());
+        Expr* value=ident.value();
+        return new ClassStmt((Symbol*)(value),type,block.value());
     }
 
     template<typename T> std::expected<WhileStmt*,Error*> Parser<T>::parse_while(){
@@ -270,27 +285,30 @@ namespace tua{
         consume_token();
         return new Type(std::move(ident));
     }
+
     template<typename T> std::expected<VarDeclInit*,Error*> Parser<T>::parse_vardeclinit(){
         consume_token();
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("Ident expected",_lexer.get_line()));
+            return std::unexpected(new ParseError("variable identifier expected",_lexer.get_line()));
         }
 
-        auto ident=current_token.value().lexeme;
-        consume_token();
+        auto ident=parse_symbol_assign();
 
         if(!match_token_kind(TokenKind::COLLON)){
             return std::unexpected(new ParseError(": expected",_lexer.get_line()));
         }
         consume_token();
 
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("type identifier expected",_lexer.get_line()));
+        }
         auto type=parse_type();
         if(!type){
             return std::unexpected(type.error());
         }
 
         if(!match_token_kind(TokenKind::EQUAL)){
-            return new VarDeclInit(std::move(ident),nullptr,type.value());
+            return new VarDeclInit((Symbol*)(ident.value()),nullptr,type.value());
         }
 
         consume_token();
@@ -298,7 +316,7 @@ namespace tua{
         if(!value){
             return std::unexpected(value.error());
         }
-        return new VarDeclInit(std::move(ident),value.value(),type.value());
+        return new VarDeclInit((Symbol*)(ident.value()),value.value(),type.value());
     }
 
     template<typename T> std::expected<Return*,Error*> Parser<T>::parse_return(){
@@ -460,6 +478,9 @@ namespace tua{
 
     template<typename T> std::expected<Expr*,Error*> Parser<T>::parse_fct_expr(){
         consume_token();
+        if(!match_token_kind(TokenKind::IDENT)){
+            return std::unexpected(new ParseError("return type identifier expected ",_lexer.get_line()));
+        }
         auto ret_type=parse_type();
         if(!ret_type){
             return std::unexpected(ret_type.error());
@@ -470,21 +491,26 @@ namespace tua{
         }
         consume_token();
         Params params;
-        uint16_t params_count=128;
+        uint16_t params_count=MAX_PARAMS;
         while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
-            auto ident=current_token.value().lexeme;
-            consume_token();
+            if(!match_token_kind(TokenKind::IDENT)){
+                return std::unexpected(new ParseError("parameter identifier expected ",_lexer.get_line()));
+            }
+            auto param=parse_symbol_assign();
 
             if(!match_token_kind(TokenKind::COLLON)){
                 return std::unexpected(new ParseError(": expected ",_lexer.get_line()));
             }
             consume_token();
+            if(!match_token_kind(TokenKind::IDENT)){
+                return std::unexpected(new ParseError("type identifier expected ",_lexer.get_line()));
+            }
 
             auto type=parse_type();
             if(!type){
                 return std::unexpected(type.error());
             }
-            auto tuple=std::make_tuple(std::move(ident),std::move(*type.value()));
+            auto tuple=std::make_tuple((Symbol*)param.value(),type.value());
             params.push_back(tuple);
 
             if(!match_token_kind(TokenKind::COMMA)){
@@ -530,7 +556,6 @@ namespace tua{
             return value;
         }
         return new Assign(std::move(ident),value.value());
-
     }
 
     template<typename T> bool Parser<T>::at_end() const noexcept {return match_token_kind(TokenKind::Eof);}

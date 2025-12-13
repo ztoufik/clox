@@ -9,7 +9,6 @@
 namespace tua{
 
     using Type=std::string;
-    using Params=std::vector<std::tuple<std::string,Type>>;
 
     struct Stmt{
         virtual ~Stmt(){}
@@ -21,6 +20,18 @@ namespace tua{
         virtual ~Expr(){}
     };
 
+    struct Symbol:Expr{
+        Symbol(std::string&& ident):ident_(std::move(ident)){}
+        Symbol(const Symbol&)=default;
+        Symbol(Symbol&&)=default;
+        Symbol& operator=(const Symbol&)=default;
+        Symbol& operator=(Symbol&&)=default;
+        std::string ident_;
+        bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
+    };
+
+    using Params=std::vector<std::tuple<Symbol*,Type*>>;
+
     struct Block:Stmt{
         public:
             Block(Stmts&& stmts):stmts(std::move(stmts)){}
@@ -31,16 +42,16 @@ namespace tua{
 
     struct ClassStmt:Stmt{
         public:
-            ClassStmt(std::string&& ident,Type* parent,Block* block):ident_(std::move(ident)),parent_(parent),block_(block){}
+            ClassStmt(Symbol* ident,Type* parent,Block* block):ident_(std::move(ident)),parent_(parent),block_(block){}
             virtual ~ClassStmt(){}
-            std::string ident_;
+            Symbol* ident_;
             Type* parent_;
             Block* block_;
     };
 
     struct FctDecl:Stmt{
-        FctDecl(Type* return_type,std::string&& name,std::vector<std::tuple<std::string,Type>>&& params,Block* block):
-            ret_type_(return_type),name_(std::move(name)),params_(std::move(params)),block_(block){}
+        FctDecl(Type* return_type,Symbol* name,Params&& params,Block* block):
+            ret_type_(return_type),ident_(name),params_(std::move(params)),block_(block){}
         FctDecl(const FctDecl&)=default;
         FctDecl(FctDecl&&)=default;
         FctDecl& operator=(const FctDecl&)=default;
@@ -53,25 +64,27 @@ namespace tua{
             if(! block_){
                 delete block_;
             }
+
+            if(! ident_){
+                delete ident_;
+            }
         }
-        std::string name_;
+        Symbol* ident_;
         Type* ret_type_;
         Params params_ ;
         Block* block_;
     };
 
     struct VarDeclInit:Stmt{
-        VarDeclInit(std::string&& ident,Expr* value,Type* type):ident_(std::move(ident)),value_(value),type_(type){}
-        const Expr* get_value()const noexcept {return value_;}
-        const Type* get_type()const noexcept {return type_;}
-        const std::string& get_ident()const noexcept {return ident_;}
+        VarDeclInit(Symbol* ident,Expr* value,Type* type):ident_(ident),value_(value),type_(type){}
         virtual ~VarDeclInit(){
             if(!value_) delete value_;
             if(!type_) delete type_;
+            if(!ident_) delete ident_;
         }
             Expr* value_;
             Type* type_;
-            std::string ident_;
+            Symbol* ident_;
     };
 
     struct IfElse:Stmt{
@@ -195,15 +208,6 @@ namespace tua{
     using Str=Literal<std::string>;
     using Bool=Literal<bool>;
 
-    struct Symbol:Expr{
-        Symbol(std::string&& ident):ident_(std::move(ident)){}
-        Symbol(const Symbol&)=default;
-        Symbol(Symbol&&)=default;
-        Symbol& operator=(const Symbol&)=default;
-        Symbol& operator=(Symbol&&)=default;
-        std::string ident_;
-        bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
-    };
 
     struct Assign:Expr{
         Assign(std::string&& ident,Expr* value):ident_(std::move(ident)),value_(value){}
