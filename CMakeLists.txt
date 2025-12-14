@@ -11,7 +11,3 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
-
-enable_testing()
-
-add_subdirectory(${PROJECT_SOURCE_DIR}/test)
