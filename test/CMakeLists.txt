@@ -12,6 +12,9 @@ FetchContent_MakeAvailable(gtest)
 
 file(GLOB SOURCES *.cpp)
 
+add_executable(main main.cpp)
+target_compile_options(main PRIVATE -w)
+
 add_executable( lexer_unit_tests "lexer_test.cpp")
 target_compile_options(lexer_unit_tests PRIVATE -w)
 target_link_libraries(lexer_unit_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
