@@ -218,8 +218,12 @@ template<typename T> Token Lexer<T>::get_token(){
                      consume();
                      if (at_end() || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
                      consume();
-                     while( iter !=iter_end && *iter!='\n' ) {consume();}
-                     break;
+                     while(*iter!='\n' ) {
+                         consume();
+                         if(at_end()) {return Token(TokenKind::Eof,current_line);}
+                     }
+                     consume();
+                     return get_token();
                  }
         case '=':{
                      consume();

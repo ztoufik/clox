@@ -17,6 +17,7 @@ namespace tua{
     template<typename T>class Parser{
         public:
             Parser(Lexer<T>&& lexer);
+            Parser(Lexer<T>& lexer);
             std::expected<Program,Error*> parse();
         private:
             bool at_end() const noexcept;
@@ -48,9 +49,9 @@ namespace tua{
             std::optional<Token> current_token;
     };
 
-    template<typename T> Parser<T>::Parser(Lexer<T>&& lexer):_lexer(std::move(lexer)){ 
-        current_token=_lexer.get_token();
-    }
+    template<typename T> Parser<T>::Parser(Lexer<T>&& lexer):_lexer(std::move(lexer)){ current_token=_lexer.get_token(); }
+    template<typename T> Parser<T>::Parser(Lexer<T>& lexer):_lexer(lexer){ current_token=_lexer.get_token(); }
+
 
     template<typename T>  std::expected<bool,Error*> Parser<T>::consume_token(){
         if(match_token_kind(TokenKind::Err)){
@@ -250,7 +251,8 @@ namespace tua{
 
         auto block=parse_block();
         if(!block){
-            return std::unexpected(new ParseError("couldn't parse class body",_lexer.get_line()));
+            auto msg=std::string("couldn't parse class body : ")+block.error()->_msg;
+            return std::unexpected(new ParseError(std::move(msg),_lexer.get_line()));
         }
         Expr* value=ident.value();
         return new ClassStmt((Symbol*)(value),type,block.value());
@@ -441,7 +443,9 @@ namespace tua{
 
             default: break;
         };
-        return std::unexpected(new ParseError("unknown token",_lexer.get_line()));
+        auto token_lexeme=current_token.value().lexeme;
+        std::string msg=std::string("unknown Terminal token : ")+token_lexeme;
+        return std::unexpected(new ParseError(std::move(msg),_lexer.get_line()));
     }
 
     template<typename T>  std::expected<Expr*,Error*> Parser<T>::parse_group(){
