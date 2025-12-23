@@ -12,6 +12,8 @@ FetchContent_MakeAvailable(gtest)
 
 file(GLOB SOURCES *.cpp)
 
+set(LLVM_DIR "D:/LLVM/lib/cmake/llvm")
+find_package(LLVM REQUIRED CONFIG)
 add_executable(main main.cpp)
 target_compile_options(main PRIVATE -w)
 
