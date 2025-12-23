@@ -1,4 +1,4 @@
-add_library(${PROJECT_NAME})
+add_library(${PROJECT_NAME} SHARED)
 
 file(GLOB SOURCES *.cpp)
 
