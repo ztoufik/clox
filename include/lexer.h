@@ -7,10 +7,6 @@
 
 namespace tua{
 
-struct TokenError{
-    std::string msg;
-};
-
 enum class TokenKind {
     Err,
     Eof ,
@@ -82,11 +78,11 @@ struct Token {
     Token& operator=(const Token&)=default;
     Token& operator=(Token&&)=default;
 
-    friend bool operator==(const Token Rhs, const Token Lhs){
+    friend bool operator==(const Token& Rhs, const Token& Lhs){
         return Rhs.kind==Lhs.kind && Rhs.lexeme==Lhs.lexeme && Rhs.line==Lhs.line;
     }
      
-    friend bool operator!=(const Token Rhs, const Token Lhs){
+    friend bool operator!=(const Token& Rhs, const Token& Lhs){
         return Rhs != Lhs;
     }
 };
@@ -94,8 +90,8 @@ struct Token {
 template<typename T> class Lexer {
     public:
         Lexer(T&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
-        Token get_token();
-        const std::uint16_t get_line();
+        constexpr Token get_token();
+        constexpr std::uint16_t get_line() const noexcept;
 
     private:
         T src;
@@ -104,9 +100,9 @@ template<typename T> class Lexer {
 
         inline constexpr void consume(); 
         constexpr bool at_end() const noexcept;
-        Token tokenize_ident();
-        Token tokenize_numeric();
-        Token tokenize_string();
+        constexpr Token tokenize_ident();
+        constexpr Token tokenize_numeric();
+        constexpr Token tokenize_string();
 
         static const std::unordered_map<std::string,TokenKind> key_words;
 };
@@ -139,7 +135,7 @@ template<typename T> constexpr bool Lexer<T>::at_end() const noexcept{
     return iter==iter_end;
 }
 
-template<typename T> Token Lexer<T>::tokenize_ident(){
+template<typename T> constexpr Token Lexer<T>::tokenize_ident(){
     std::stringstream ss;
     while(iter!=iter_end && std::isalnum(*iter)){
         ss<<*iter;
@@ -153,7 +149,7 @@ template<typename T> Token Lexer<T>::tokenize_ident(){
     return Token(tkind_ptr->second,current_line);
 }
 
-template<typename T> Token Lexer<T>::tokenize_numeric(){
+template<typename T> constexpr Token Lexer<T>::tokenize_numeric(){
     std::stringstream ss;
     TokenKind tkind=TokenKind::INT;
     bool digit_pt=false;
@@ -176,7 +172,7 @@ template<typename T> Token Lexer<T>::tokenize_numeric(){
     return Token(tkind,std::move(ss.str()),current_line);
 }
 
-template<typename T> Token Lexer<T>::tokenize_string(){
+template<typename T> constexpr Token Lexer<T>::tokenize_string(){
     std::stringstream ss;
     while(iter!=iter_end && *iter!='"') {
         ss<<*iter;
@@ -186,11 +182,11 @@ template<typename T> Token Lexer<T>::tokenize_string(){
     return Token(TokenKind::STRING,std::move(ss.str()),current_line);
 }
 
-template<typename T> const std::uint16_t Lexer<T>::get_line(){
+template<typename T> constexpr std::uint16_t Lexer<T>::get_line() const noexcept{
     return current_line;
 }
 
-template<typename T> Token Lexer<T>::get_token(){
+template<typename T> constexpr Token Lexer<T>::get_token(){
     while(iter!=iter_end && isspace(*iter) ){
         if(*iter=='\n') current_line++; 
         consume();
