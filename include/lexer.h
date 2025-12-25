@@ -7,258 +7,124 @@
 
 namespace tua{
 
-enum class TokenKind {
-    Err,
-    Eof ,
+    enum class TokenKind {
+        Err,
+        Eof ,
 
-    LEFT_PAREN,
-    RIGHT_PAREN,
-    LEFT_BRACKET,
-    RIGHT_BRACKET,
-    LEFT_BRACE,
-    RIGHT_BRACE,
+        LEFT_PAREN,
+        RIGHT_PAREN,
+        LEFT_BRACKET,
+        RIGHT_BRACKET,
+        LEFT_BRACE,
+        RIGHT_BRACE,
 
-    SLASH,
-    STAR,
-    MINUS,
-    PLUS,
+        SLASH,
+        STAR,
+        MINUS,
+        PLUS,
 
-    COMMA,
-    COLLON,
-    DOT,
-    EQUAL,
-    SEMICOLON,
+        COMMA,
+        COLLON,
+        DOT,
+        EQUAL,
+        SEMICOLON,
 
-    BIT_OR,
-    BIT_AND,
-    BIT_RSHIFT,
-    BIT_LSHIFT,
+        BIT_OR,
+        BIT_AND,
+        BIT_RSHIFT,
+        BIT_LSHIFT,
 
-    BANG_EQUAL,
-    BANG,
+        BANG_EQUAL,
+        BANG,
 
-    GREATER,
-    LESS,
-    EQUAL_EQUAL,
-    GREATER_EQUAL,
-    LESS_EQUAL,
+        GREATER,
+        LESS,
+        EQUAL_EQUAL,
+        GREATER_EQUAL,
+        LESS_EQUAL,
 
-    IDENT,
-    STRING,
-    INT,
-    DOUBLE,
+        IDENT,
+        STRING,
+        INT,
+        DOUBLE,
 
-    OR ,
-    AND ,
-    CLASS ,
-    SUPER ,
-    THIS ,
-    FALSE ,
-    TRUE ,
-    FOR ,
-    WHILE ,
-    IF ,
-    ELSE ,
-    NIL ,
-    FUN ,
-    LAMBDA ,
-    RETURN ,
-    LET ,
-};
+        OR ,
+        AND ,
+        CLASS ,
+        SUPER ,
+        THIS ,
+        FALSE ,
+        TRUE ,
+        FOR ,
+        WHILE ,
+        IF ,
+        ELSE ,
+        NIL ,
+        FUN ,
+        LAMBDA ,
+        RETURN ,
+        LET ,
+    };
 
-struct Token {
-    TokenKind kind;
-    std::string lexeme;
-    std::uint16_t line;
+    struct Token {
+        TokenKind kind;
+        std::string lexeme;
+        std::uint16_t line;
+        char* begin,end;
 
-    Token(TokenKind kind, std::string&& value,std::uint16_t line) : kind(kind), lexeme(value),line(line) {}
-    Token(TokenKind kind,std::uint16_t line) : kind(kind),lexeme(""),line(line){}
-    Token(const Token&)=default;
-    Token(Token&&)=default;
-    Token& operator=(const Token&)=default;
-    Token& operator=(Token&&)=default;
+        Token(TokenKind kind, std::string&& lexeme,std::uint16_t line) : kind(kind), lexeme(lexeme),line(line) {}
+        Token(TokenKind kind,std::uint16_t line) : kind(kind),lexeme(""),line(line){}
+        Token(const Token&)=default;
+        Token(Token&&)=default;
+        Token& operator=(const Token&)=default;
+        Token& operator=(Token&&)=default;
 
-    friend bool operator==(const Token& Rhs, const Token& Lhs){
-        return Rhs.kind==Lhs.kind && Rhs.lexeme==Lhs.lexeme && Rhs.line==Lhs.line;
-    }
-     
-    friend bool operator!=(const Token& Rhs, const Token& Lhs){
-        return Rhs != Lhs;
-    }
-};
-
-template<typename T> class Lexer {
-    public:
-        Lexer(T&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
-        constexpr Token get_token();
-        constexpr std::uint16_t get_line() const noexcept;
-
-    private:
-        T src;
-        T::iterator iter,iter_end;
-        std::uint16_t current_line;
-
-        inline constexpr void consume(); 
-        constexpr bool at_end() const noexcept;
-        constexpr Token tokenize_ident();
-        constexpr Token tokenize_numeric();
-        constexpr Token tokenize_string();
-
-        static const std::unordered_map<std::string,TokenKind> key_words;
-};
-
-template<typename T>
-const std::unordered_map<std::string,TokenKind> Lexer<T>::key_words={
-    {std::string("class"),TokenKind::CLASS},
-    {std::string("and") ,TokenKind::AND},
-    {std::string("else") ,TokenKind::ELSE},
-    {std::string("false") ,TokenKind::FALSE},
-    {std::string("fun") ,TokenKind::FUN},
-    {std::string("lambda") ,TokenKind::LAMBDA},
-    {std::string("for") ,TokenKind::FOR},
-    {std::string("if") ,TokenKind::IF},
-    {std::string("nil") ,TokenKind::NIL},
-    {std::string("or") ,TokenKind::OR},
-    {std::string("return") ,TokenKind::RETURN},
-    {std::string("super") ,TokenKind::SUPER},
-    {std::string("this") ,TokenKind::THIS},
-    {std::string("true") ,TokenKind::TRUE},
-    {std::string("let") ,TokenKind::LET},
-    {std::string("while") ,TokenKind::WHILE},
-};
-
-template<typename T> constexpr void Lexer<T>::consume(){
-    iter++;
-}
-
-template<typename T> constexpr bool Lexer<T>::at_end() const noexcept{
-    return iter==iter_end;
-}
-
-template<typename T> constexpr Token Lexer<T>::tokenize_ident(){
-    std::stringstream ss;
-    while(iter!=iter_end && std::isalnum(*iter)){
-        ss<<*iter;
-        iter++;
-    }
-
-    auto word=std::move(ss.str());
-    auto tkind_ptr=Lexer::key_words.find(word);
-    if(tkind_ptr==Lexer::key_words.end())
-        return Token(TokenKind::IDENT,std::move(word),current_line);
-    return Token(tkind_ptr->second,current_line);
-}
-
-template<typename T> constexpr Token Lexer<T>::tokenize_numeric(){
-    std::stringstream ss;
-    TokenKind tkind=TokenKind::INT;
-    bool digit_pt=false;
-    while(iter!=iter_end && (std::isdigit(*iter) || *iter=='.')) {
-        if (*iter=='.'){
-            if (digit_pt) {
-                break;
-            }
-            else{
-                digit_pt=true;
-                tkind=TokenKind::DOUBLE;
-                ss<<*iter;
-            }
+        friend bool operator==(const Token& Rhs, const Token& Lhs){
+            return Rhs.kind==Lhs.kind && Rhs.lexeme==Lhs.lexeme && Rhs.line==Lhs.line;
         }
-        else{
-            ss<<*iter;
+
+        friend bool operator!=(const Token& Rhs, const Token& Lhs){
+            return Rhs != Lhs;
         }
-        iter++;
-    }
-    return Token(tkind,std::move(ss.str()),current_line);
-}
-
-template<typename T> constexpr Token Lexer<T>::tokenize_string(){
-    std::stringstream ss;
-    while(iter!=iter_end && *iter!='"') {
-        ss<<*iter;
-        iter++;
-    };
-    iter++;
-    return Token(TokenKind::STRING,std::move(ss.str()),current_line);
-}
-
-template<typename T> constexpr std::uint16_t Lexer<T>::get_line() const noexcept{
-    return current_line;
-}
-
-template<typename T> constexpr Token Lexer<T>::get_token(){
-    while(iter!=iter_end && isspace(*iter) ){
-        if(*iter=='\n') current_line++; 
-        consume();
     };
 
-    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
-    switch(*iter){
-        case '(':{consume();return Token(TokenKind::LEFT_PAREN,current_line);}
-        case ')':{consume();return Token(TokenKind::RIGHT_PAREN,current_line);}
-        case '[':{consume();return Token(TokenKind::LEFT_BRACKET,current_line);}
-        case ']':{consume();return Token(TokenKind::RIGHT_BRACKET,current_line);}
-        case '{':{consume();return Token(TokenKind::LEFT_BRACE,current_line);}
-        case '}':{consume();return Token(TokenKind::RIGHT_BRACE,current_line);}
-        case '|':{consume();return Token(TokenKind::BIT_OR,current_line);}
-        case '&':{consume();return Token(TokenKind::BIT_AND,current_line);}
-        case ',':{consume();return Token(TokenKind::COMMA,current_line);}
-        case ':':{consume();return Token(TokenKind::COLLON,current_line);}
-        case ';':{consume();return Token(TokenKind::SEMICOLON,current_line);}
-        case '.':{consume();return Token(TokenKind::DOT,current_line);}
-        case '+':{consume();return Token(TokenKind::PLUS,current_line);}
-        case '-':{consume();return Token(TokenKind::MINUS,current_line);}
-        case '*':{consume();return Token(TokenKind::STAR,current_line);}
-        case '"':{consume();return tokenize_string();}
-        case '/':{
-                     consume();
-                     if (at_end() || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}
-                     consume();
-                     while(*iter!='\n' ) {
-                         consume();
-                         if(at_end()) {return Token(TokenKind::Eof,current_line);}
-                     }
-                     consume();
-                     return get_token();
-                 }
-        case '=':{
-                     consume();
-                     if (at_end() || *iter!='=' ){return Token(TokenKind::EQUAL,current_line);}
-                     consume();
-                     return Token(TokenKind::EQUAL_EQUAL,current_line);
-                 }
-        case '<':{
-                     consume();
-                     if (!at_end() && *iter=='='){consume();return Token(TokenKind::LESS_EQUAL,current_line);}
-                     if (!at_end() && *iter=='<'){consume();return Token(TokenKind::BIT_LSHIFT,current_line);}
-                     return Token(TokenKind::LESS,current_line);
-                 }
-        case '>':{
-                     consume();
-                     if (!at_end() && *iter=='='){consume();return Token(TokenKind::GREATER_EQUAL,current_line);}
-                     if (!at_end() && *iter=='>'){consume();return Token(TokenKind::BIT_RSHIFT,current_line);}
-                     return Token(TokenKind::GREATER,current_line);
-                 }
-        case '!':{
-                     consume();
-                     if (at_end() || *iter!='=' ){return Token(TokenKind::BANG,current_line);}
-                     consume();
-                     return Token(TokenKind::BANG_EQUAL,current_line);
-                 }
-        default: break;
+    class Lexer {
+        public:
+            Lexer(std::string&& source):src(std::move(source)),iter(src.begin()),iter_end(src.end()),current_line(0){ }
+            const Token get_token();
+            const std::uint16_t get_line() const noexcept;
+
+        private:
+            std::string src;
+            std::string::iterator iter,iter_end;
+            std::uint16_t current_line;
+
+            const void consume(); 
+            const bool at_end() const noexcept;
+            const Token tokenize_ident();
+            const Token tokenize_numeric();
+            const Token tokenize_string();
+
+            const std::unordered_map<std::string,TokenKind> key_words={
+                {std::string("class"),TokenKind::CLASS},
+                {std::string("and") ,TokenKind::AND},
+                {std::string("else") ,TokenKind::ELSE},
+                {std::string("false") ,TokenKind::FALSE},
+                {std::string("fun") ,TokenKind::FUN},
+                {std::string("lambda") ,TokenKind::LAMBDA},
+                {std::string("for") ,TokenKind::FOR},
+                {std::string("if") ,TokenKind::IF},
+                {std::string("nil") ,TokenKind::NIL},
+                {std::string("or") ,TokenKind::OR},
+                {std::string("return") ,TokenKind::RETURN},
+                {std::string("super") ,TokenKind::SUPER},
+                {std::string("this") ,TokenKind::THIS},
+                {std::string("true") ,TokenKind::TRUE},
+                {std::string("let") ,TokenKind::LET},
+                {std::string("while") ,TokenKind::WHILE},
+            };
     };
 
-    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
-    if(std::isalpha(*iter)){
-        return tokenize_ident();
-    }
-
-    if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
-    if(std::isdigit(*iter)){
-        return tokenize_numeric();
-    }
-    return Token(TokenKind::Err,current_line);
-}
-
+    
 };
 #endif
