@@ -1,6 +1,4 @@
-add_library(${PROJECT_NAME} SHARED)
-
-file(GLOB SOURCES *.cpp)
-
-target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
-
+add_library(${PROJECT_NAME} "lexer.cpp")
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
+get_target_property(SRCS tua_core SOURCES)
+message(STATUS "tua_core sources: ${SRCS}")
