@@ -18,10 +18,10 @@ Parser::Parser(Lexer& lexer):_lexer(lexer){ current_token=_lexer.get_token(); }
 
 std::expected<bool,Error*> Parser::consume_token(){
     if(match_token_kind(TokenKind::Err)){
-        return std::unexpected(new ParseError("unrecognized token found",_lexer.get_line()));
+        return std::unexpected(new ParseError("unrecognized token found",current_token->line));
     }
     if(match_token_kind(TokenKind::Eof)){
-        return std::unexpected(new ParseError("end of token stream",_lexer.get_line()));
+        return std::unexpected(new ParseError("end of token stream",current_token->line));
     }
     current_token=_lexer.get_token();
     return true;
@@ -38,7 +38,7 @@ std::expected<Program,Error*> Parser::parse(){
         stmts.push_back(stmt.value());
 
         if(!match_token_kind(TokenKind::SEMICOLON)){
-            return std::unexpected(new ParseError("; expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("; expected",current_token->line));
         }
         consume_token();
     };
@@ -77,7 +77,7 @@ std::expected<Block*,Error*> Parser::parse_block(){
         stmts.push_back(stmt.value());
 
         if(!match_token_kind(TokenKind::SEMICOLON)){
-            return std::unexpected(new ParseError("; expected",_lexer.get_line()));
+            return std::unexpected(new ParseError("; expected",current_token->line));
         }
         consume_token();
     };
@@ -89,7 +89,7 @@ std::expected<Block*,Error*> Parser::parse_block(){
 std::expected<IfElse*,Error*> Parser:: parse_if(){
     consume_token();
     if(!match_token_kind(TokenKind::LEFT_PAREN)){
-        return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("( expected",current_token->line));
     }
     consume_token();
     auto condi=parse_expr();
@@ -97,11 +97,11 @@ std::expected<IfElse*,Error*> Parser:: parse_if(){
         return std::unexpected(condi.error());
     }
     if(!match_token_kind(TokenKind::RIGHT_PAREN)){
-        return std::unexpected(new ParseError(") expected",_lexer.get_line()));
+        return std::unexpected(new ParseError(") expected",current_token->line));
     }
     consume_token();
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected",current_token->line));
     }
     auto if_block=parse_block();
     if(!if_block){
@@ -113,7 +113,7 @@ std::expected<IfElse*,Error*> Parser:: parse_if(){
 
     consume_token();
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected",current_token->line));
     }
     auto else_block=parse_block();
     if(!else_block){
@@ -126,37 +126,37 @@ std::expected<IfElse*,Error*> Parser:: parse_if(){
 std::expected<FctDecl*,Error*> Parser::parse_fct_decl(){
     consume_token();
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("return type identifier expected ",_lexer.get_line()));
+        return std::unexpected(new ParseError("return type identifier expected ",current_token->line));
     }
     auto ret_type=parse_type();
     if(!ret_type){
         return std::unexpected(ret_type.error());
     }
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("function identifier expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("function identifier expected",current_token->line));
     }
 
     auto ident=parse_symbol_assign();
 
     if(!match_token_kind(TokenKind::LEFT_PAREN)){
-        return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("( expected",current_token->line));
     }
     consume_token();
     Params params;
     uint16_t params_count=MAX_PARAMS;
     while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("parameter identifier expected",_lexer.get_line()));
+            return std::unexpected(new ParseError("parameter identifier expected",current_token->line));
         }
         auto param=parse_symbol_assign();
 
         if(!match_token_kind(TokenKind::COLLON)){
-            return std::unexpected(new ParseError(": expected",_lexer.get_line()));
+            return std::unexpected(new ParseError(": expected",current_token->line));
         }
         consume_token();
 
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("type identifier expected",_lexer.get_line()));
+            return std::unexpected(new ParseError("type identifier expected",current_token->line));
         }
         auto type=parse_type();
         if(!type){
@@ -166,7 +166,7 @@ std::expected<FctDecl*,Error*> Parser::parse_fct_decl(){
         params.push_back(tuple);
 
         if(!match_token_kind(TokenKind::COMMA)){
-            return std::unexpected(new ParseError(", expected",_lexer.get_line()));
+            return std::unexpected(new ParseError(", expected",current_token->line));
         }
         consume_token();
 
@@ -174,12 +174,12 @@ std::expected<FctDecl*,Error*> Parser::parse_fct_decl(){
     }
 
     if(!params_count){
-        return std::unexpected(new ParseError(") expected or overexceed params count",_lexer.get_line()));
+        return std::unexpected(new ParseError(") expected or overexceed params count",current_token->line));
     }
     consume_token();
 
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected",current_token->line));
     }
 
     auto block=parse_block();
@@ -193,7 +193,7 @@ std::expected<FctDecl*,Error*> Parser::parse_fct_decl(){
 std::expected<ClassStmt*,Error*> Parser::parse_class(){
     consume_token();
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("class identifier expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("class identifier expected",current_token->line));
     }
     auto ident=parse_symbol_assign();
 
@@ -202,20 +202,20 @@ std::expected<ClassStmt*,Error*> Parser::parse_class(){
     if(match_token_kind(TokenKind::COLLON)){
         consume_token();
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("parent class identifier expected",_lexer.get_line()));
+            return std::unexpected(new ParseError("parent class identifier expected",current_token->line));
         }
         auto op_type=parse_type();
         type=op_type.value();
     }
 
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected",current_token->line));
     }
 
     auto block=parse_block();
     if(!block){
         auto msg=std::string("couldn't parse class body : ")+block.error()->_msg;
-        return std::unexpected(new ParseError(std::move(msg),_lexer.get_line()));
+        return std::unexpected(new ParseError(std::move(msg),current_token->line));
     }
     Expr* value=ident.value();
     return new ClassStmt((Symbol*)(value),type,block.value());
@@ -224,7 +224,7 @@ std::expected<ClassStmt*,Error*> Parser::parse_class(){
 std::expected<WhileStmt*,Error*> Parser::parse_while(){
     consume_token();
     if(!match_token_kind(TokenKind::LEFT_PAREN)){
-        return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("( expected",current_token->line));
     }
     consume_token();
     auto condi=parse_expr();
@@ -232,11 +232,11 @@ std::expected<WhileStmt*,Error*> Parser::parse_while(){
         return std::unexpected(condi.error());
     }
     if(!match_token_kind(TokenKind::RIGHT_PAREN)){
-        return std::unexpected(new ParseError(") expected",_lexer.get_line()));
+        return std::unexpected(new ParseError(") expected",current_token->line));
     }
     consume_token();
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected",current_token->line));
     }
     auto while_block=parse_block();
     if(!while_block){
@@ -254,18 +254,18 @@ std::expected<Type*,Error*> Parser::parse_type(){
 std::expected<VarDeclInit*,Error*> Parser::parse_vardeclinit(){
     consume_token();
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("variable identifier expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("variable identifier expected",current_token->line));
     }
 
     auto ident=parse_symbol_assign();
 
     if(!match_token_kind(TokenKind::COLLON)){
-        return std::unexpected(new ParseError(": expected",_lexer.get_line()));
+        return std::unexpected(new ParseError(": expected",current_token->line));
     }
     consume_token();
 
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("type identifier expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("type identifier expected",current_token->line));
     }
     auto type=parse_type();
     if(!type){
@@ -375,7 +375,7 @@ std::expected<Expr*,Error*> Parser::parse_fctcall(Expr* expr){
         args.push_back(arg.value());
         while(!match_token_kind(TokenKind::RIGHT_PAREN)){
             if(!match_token_kind(TokenKind::COMMA)){
-                return std::unexpected(new ParseError(", expected",_lexer.get_line()));
+                return std::unexpected(new ParseError(", expected",current_token->line));
             }
             consume_token();
             arg=parse_expr();
@@ -408,7 +408,7 @@ std::expected<Expr*,Error*> Parser::parse_terminals(){
     };
     auto token_lexeme=current_token.value().lexeme;
     std::string msg=std::string("unknown Terminal token : ")+token_lexeme;
-    return std::unexpected(new ParseError(std::move(msg),_lexer.get_line()));
+    return std::unexpected(new ParseError(std::move(msg),current_token->line));
 }
 
 std::expected<Expr*,Error*> Parser::parse_group(){
@@ -418,7 +418,7 @@ std::expected<Expr*,Error*> Parser::parse_group(){
         return expr;
     }
     if(!match_token_kind(TokenKind::RIGHT_PAREN)){
-        return std::unexpected(new ParseError(") expected",_lexer.get_line()));
+        return std::unexpected(new ParseError(") expected",current_token->line));
     }
     consume_token();
     return new Group(expr.value());
@@ -446,7 +446,7 @@ std::expected<Expr*,Error*> Parser::parse_bool(){
 std::expected<Expr*,Error*> Parser::parse_fct_expr(){
     consume_token();
     if(!match_token_kind(TokenKind::IDENT)){
-        return std::unexpected(new ParseError("return type identifier expected ",_lexer.get_line()));
+        return std::unexpected(new ParseError("return type identifier expected ",current_token->line));
     }
     auto ret_type=parse_type();
     if(!ret_type){
@@ -454,23 +454,23 @@ std::expected<Expr*,Error*> Parser::parse_fct_expr(){
     }
 
     if(!match_token_kind(TokenKind::LEFT_PAREN)){
-        return std::unexpected(new ParseError("( expected",_lexer.get_line()));
+        return std::unexpected(new ParseError("( expected",current_token->line));
     }
     consume_token();
     Params params;
     uint16_t params_count=MAX_PARAMS;
     while(!match_token_kind(TokenKind::RIGHT_PAREN) && params_count){
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("parameter identifier expected ",_lexer.get_line()));
+            return std::unexpected(new ParseError("parameter identifier expected ",current_token->line));
         }
         auto param=parse_symbol_assign();
 
         if(!match_token_kind(TokenKind::COLLON)){
-            return std::unexpected(new ParseError(": expected ",_lexer.get_line()));
+            return std::unexpected(new ParseError(": expected ",current_token->line));
         }
         consume_token();
         if(!match_token_kind(TokenKind::IDENT)){
-            return std::unexpected(new ParseError("type identifier expected ",_lexer.get_line()));
+            return std::unexpected(new ParseError("type identifier expected ",current_token->line));
         }
 
         auto type=parse_type();
@@ -481,7 +481,7 @@ std::expected<Expr*,Error*> Parser::parse_fct_expr(){
         params.push_back(tuple);
 
         if(!match_token_kind(TokenKind::COMMA)){
-            return std::unexpected(new ParseError(", expected ",_lexer.get_line()));
+            return std::unexpected(new ParseError(", expected ",current_token->line));
         }
         consume_token();
 
@@ -489,12 +489,12 @@ std::expected<Expr*,Error*> Parser::parse_fct_expr(){
     }
 
     if(!params_count){
-        return std::unexpected(new ParseError(") expected or overexceed params count",_lexer.get_line()));
+        return std::unexpected(new ParseError(") expected or overexceed params count",current_token->line));
     }
     consume_token();
 
     if(!match_token_kind(TokenKind::LEFT_BRACE)){
-        return std::unexpected(new ParseError("{ expected ",_lexer.get_line()));
+        return std::unexpected(new ParseError("{ expected ",current_token->line));
     }
 
     auto block=parse_block();

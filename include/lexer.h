@@ -105,8 +105,8 @@ namespace tua{
             const Token tokenize_string();
 
             const std::unordered_map<std::string,TokenKind> key_words={
-                {std::string("class"),TokenKind::CLASS},
                 {std::string("and") ,TokenKind::AND},
+                {std::string("class"),TokenKind::CLASS},
                 {std::string("else") ,TokenKind::ELSE},
                 {std::string("false") ,TokenKind::FALSE},
                 {std::string("fun") ,TokenKind::FUN},
