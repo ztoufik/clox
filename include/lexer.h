@@ -2,7 +2,6 @@
 #define  LEXER_H
 
 #include <string>
-#include <sstream>
 #include <unordered_map>
 
 namespace tua{
