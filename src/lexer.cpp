@@ -4,26 +4,26 @@
 
 #include"lexer.h"
 namespace tua{
-             const std::unordered_map<std::string,TokenKind> Lexer::key_words={
-                {std::string("and") ,TokenKind::AND},
-                {std::string("class"),TokenKind::CLASS},
-                {std::string("else") ,TokenKind::ELSE},
-                {std::string("false") ,TokenKind::FALSE},
-                {std::string("fun") ,TokenKind::FUN},
-                {std::string("lambda") ,TokenKind::LAMBDA},
-                {std::string("for") ,TokenKind::FOR},
-                {std::string("if") ,TokenKind::IF},
-                {std::string("nil") ,TokenKind::NIL},
-                {std::string("or") ,TokenKind::OR},
-                {std::string("return") ,TokenKind::RETURN},
-                {std::string("super") ,TokenKind::SUPER},
-                {std::string("this") ,TokenKind::THIS},
-                {std::string("true") ,TokenKind::TRUE},
-                {std::string("let") ,TokenKind::LET},
-                {std::string("while") ,TokenKind::WHILE},
-            };
+    const std::unordered_map<std::string,TokenKind> Lexer::key_words={
+        {std::string("and") ,TokenKind::AND},
+        {std::string("class"),TokenKind::CLASS},
+        {std::string("else") ,TokenKind::ELSE},
+        {std::string("false") ,TokenKind::FALSE},
+        {std::string("fun") ,TokenKind::FUN},
+        {std::string("lambda") ,TokenKind::LAMBDA},
+        {std::string("for") ,TokenKind::FOR},
+        {std::string("if") ,TokenKind::IF},
+        {std::string("nil") ,TokenKind::NIL},
+        {std::string("or") ,TokenKind::OR},
+        {std::string("return") ,TokenKind::RETURN},
+        {std::string("super") ,TokenKind::SUPER},
+        {std::string("this") ,TokenKind::THIS},
+        {std::string("true") ,TokenKind::TRUE},
+        {std::string("let") ,TokenKind::LET},
+        {std::string("while") ,TokenKind::WHILE},
+    };
 
-    const void Lexer::consume(){
+    void Lexer::consume(){
         iter++;
     }
 
@@ -33,7 +33,7 @@ namespace tua{
 
     const Token Lexer::tokenize_string(){
         std::stringstream ss;
-        while(iter!=iter_end && *iter!='"') {
+        while(!at_end() && *iter!='"') {
             ss<<*iter;
             iter++;
         };
@@ -43,12 +43,12 @@ namespace tua{
 
 
     const Token Lexer::get_token(){
-        while(iter!=iter_end && isspace(*iter) ){
+        while(!at_end() && isspace(*iter) ){
             if(*iter=='\n') current_line++; 
             consume();
         };
 
-        if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
+        if(at_end()) { return Token(TokenKind::Eof,current_line);}
         switch(*iter){
             case '(':{consume();return Token(TokenKind::LEFT_PAREN,current_line);}
             case ')':{consume();return Token(TokenKind::RIGHT_PAREN,current_line);}
@@ -104,12 +104,12 @@ namespace tua{
             default: break;
         };
 
-        if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
+        if(at_end()) { return Token(TokenKind::Eof,current_line);}
         if(std::isalpha(*iter)){
             return tokenize_ident();
         }
 
-        if(iter==iter_end) { return Token(TokenKind::Eof,current_line);}
+        if(at_end()) { return Token(TokenKind::Eof,current_line);}
         if(std::isdigit(*iter)){
             return tokenize_numeric();
         }
@@ -121,7 +121,7 @@ namespace tua{
 
     const Token Lexer::tokenize_ident(){
         std::stringstream ss;
-        while(iter!=iter_end && std::isalnum(*iter)){
+        while(!at_end() && std::isalnum(*iter)){
             ss<<*iter;
             iter++;
         }
@@ -137,7 +137,7 @@ namespace tua{
         std::stringstream ss;
         TokenKind tkind=TokenKind::INT;
         bool digit_pt=false;
-        while(iter!=iter_end && (std::isdigit(*iter) || *iter=='.')) {
+        while(!at_end() && (std::isdigit(*iter) || *iter=='.')) {
             if (*iter=='.'){
                 if (digit_pt) {
                     break;

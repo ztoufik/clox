@@ -98,7 +98,7 @@ namespace tua{
             std::string::iterator iter,iter_end;
             std::uint16_t current_line;
 
-            const void consume(); 
+            void consume(); 
             const bool at_end() const noexcept;
             const Token tokenize_ident();
             const Token tokenize_numeric();
