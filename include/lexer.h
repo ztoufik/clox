@@ -104,24 +104,7 @@ namespace tua{
             const Token tokenize_numeric();
             const Token tokenize_string();
 
-            const std::unordered_map<std::string,TokenKind> key_words={
-                {std::string("and") ,TokenKind::AND},
-                {std::string("class"),TokenKind::CLASS},
-                {std::string("else") ,TokenKind::ELSE},
-                {std::string("false") ,TokenKind::FALSE},
-                {std::string("fun") ,TokenKind::FUN},
-                {std::string("lambda") ,TokenKind::LAMBDA},
-                {std::string("for") ,TokenKind::FOR},
-                {std::string("if") ,TokenKind::IF},
-                {std::string("nil") ,TokenKind::NIL},
-                {std::string("or") ,TokenKind::OR},
-                {std::string("return") ,TokenKind::RETURN},
-                {std::string("super") ,TokenKind::SUPER},
-                {std::string("this") ,TokenKind::THIS},
-                {std::string("true") ,TokenKind::TRUE},
-                {std::string("let") ,TokenKind::LET},
-                {std::string("while") ,TokenKind::WHILE},
-            };
+            static const std::unordered_map<std::string,TokenKind> key_words;
     };
 
     
