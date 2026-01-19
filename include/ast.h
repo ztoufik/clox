@@ -241,6 +241,15 @@ namespace tua{
         Block* block_;
     };
 
+    struct AccExpr:Expr{
+        AccExpr(Expr* left,Expr* right):left_(left),right_(right){}
+        AccExpr(const AccExpr&)=default;
+        AccExpr(AccExpr&&)=default;
+        AccExpr& operator=(const AccExpr&)=default;
+        AccExpr& operator=(AccExpr&&)=default;
+        Expr *left_,*right_;
+    };
+
 
     struct Program{
         Program(Stmts&& stmts):stmts(stmts){}

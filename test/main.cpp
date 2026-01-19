@@ -3,7 +3,9 @@
 #include<fstream>
 #include<string>
 
-#include "lexer.h"
+#include<llvm/IR/LLVMContext.h>
+
+
 #include "parser.h"
 
 std::optional<std::string> readfilecontent(std::string_view path){
@@ -24,6 +26,7 @@ std::optional<std::string> readfilecontent(std::string_view path){
 }
 
 int main(){
+    llvm::LLVMContext context;
     auto op_source=readfilecontent("C:\\Users\\toufik\\Documents\\cpp_projects\\lox_cpp\\build\\test\\source.txt");
     if(!op_source){
         std::cout<<"no source code available"<<std::endl;
