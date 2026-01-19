@@ -63,9 +63,14 @@ namespace tua{
             case ';':{consume();return Token(TokenKind::SEMICOLON,current_line);}
             case '.':{consume();return Token(TokenKind::DOT,current_line);}
             case '+':{consume();return Token(TokenKind::PLUS,current_line);}
-            case '-':{consume();return Token(TokenKind::MINUS,current_line);}
             case '*':{consume();return Token(TokenKind::STAR,current_line);}
             case '"':{consume();return tokenize_string();}
+            case '-':{
+                         consume();
+                         if (at_end() || *iter!='>' ){return Token(TokenKind::MINUS,current_line);}
+                         consume();
+                         return Token(TokenKind::ARROW,current_line);
+                     }
             case '/':{
                          consume();
                          if (at_end() || *iter!='/' ){return Token(TokenKind::SLASH,current_line);}

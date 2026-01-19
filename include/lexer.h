@@ -25,6 +25,7 @@ namespace tua{
         COMMA,
         COLLON,
         DOT,
+        ARROW,
         EQUAL,
         SEMICOLON,
 
