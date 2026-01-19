@@ -325,7 +325,7 @@ std::expected<Expr*,Error*> Parser::parse_term(){
 }
 
 std::expected<Expr*,Error*> Parser::parse_factor(){
-    auto left_expr=parse_fctcalls();
+    auto left_expr=parse_acc_expr();
     if (left_expr){
         switch(current_token.value().kind){
             case tua::TokenKind::STAR:{
@@ -350,6 +350,22 @@ std::expected<Expr*,Error*> Parser::parse_factor(){
         }
     }
     return left_expr;
+}
+
+std::expected<Expr*,Error*> Parser::parse_acc_expr(){
+    auto left=parse_fctcalls();
+    if(!left){
+        return std::unexpected(left.error());
+    }
+    if(match_token_kind(TokenKind::ARROW)){
+        consume_token();
+        auto right=parse_fctcalls();
+        if(!right){
+            return std::unexpected(right.error());
+        }
+        return new AccExpr(left.value(),right.value());
+    }
+    return left;
 }
 
 std::expected<Expr*,Error*> Parser::parse_fctcalls(){
@@ -504,6 +520,7 @@ std::expected<Expr*,Error*> Parser::parse_fct_expr(){
 
     return new FctExpr(ret_type.value(),std::move(params),block.value());
 }
+
 
 std::expected<Expr*,Error*> Parser::parse_str(){
     auto value=current_token.value().lexeme;

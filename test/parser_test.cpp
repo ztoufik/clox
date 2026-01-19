@@ -247,7 +247,8 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string("3-3;")),
             std::tuple(std::string("3-0.3*4;")),
-            std::tuple(std::string("test-hello;")),
+            std::tuple(std::string("test->test-hello;")),
+            std::tuple(std::string("test-hello->h();")),
             std::tuple(std::string("(3)-0;"))
             )
         );
@@ -276,8 +277,9 @@ INSTANTIATE_TEST_SUITE_P(
             std::tuple(std::string("3*3;")),
             std::tuple(std::string("(3+4)*3;")),
             std::tuple(std::string("3*3*0;")),
-            std::tuple(std::string("(a+t)*b;")),
-            std::tuple(std::string("3*3/0;"))
+            std::tuple(std::string("(a+t)*b();")),
+            std::tuple(std::string("3*3/0;")),
+            std::tuple(std::string("3*3->hello()/0;"))
             )
         );
 
@@ -395,6 +397,34 @@ INSTANTIATE_TEST_SUITE_P(
             )
         );
 
+class ParseAccExprFixt : public ::testing::TestWithParam<std::tuple<std::string,AccExpr>> {
+};
+
+TEST_P(ParseAccExprFixt, ParserTest) {
+    auto src = std::get<0>(GetParam());
+    
+    auto fctcall = std::get<1>(GetParam());
+    auto lexer=Lexer(std::move(src));
+    Parser parser(lexer);
+    auto rslt=parser.parse();
+    ASSERT_TRUE(rslt);
+    Program& program=rslt.value();
+    auto& stmt=program.stmts;
+    ASSERT_EQ(stmt.size(),1);
+    auto ast_node=dynamic_cast<AccExpr*>(stmt.at(0));
+    ASSERT_TRUE(ast_node);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+        parseaccexprfixt,
+        ParseAccExprFixt,
+        ::testing::Values(
+            std::tuple(std::string("a->b;"),AccExpr(new Symbol("a"),new Symbol("b"))),
+            std::tuple(std::string("a()->b;"),AccExpr(new FctCall(new Symbol("a"),std::vector<Expr*>()),new Symbol("b"))),
+            std::tuple(std::string("a->b();"),AccExpr(new Symbol("a"),new FctCall(new Symbol("a"),std::vector<Expr*>())))
+            )
+        );
+
 class ParseFctExprFixt : public ::testing::TestWithParam<std::tuple<std::string>> {
 };
 
@@ -418,7 +448,7 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::Values(
             std::tuple(std::string("lambda test (){3+3;};")),
             std::tuple(std::string("lambda hello(a:b,){let a:int=4;};")),
-            std::tuple(std::string("lambda hello(a:b,c:test,){let a:int=c;};"))
+            std::tuple(std::string("lambda hello(a:b,c:test,){let a:int=c->fonction(a);};"))
             )
         );
 
@@ -444,6 +474,7 @@ INSTANTIATE_TEST_SUITE_P(
         ParseBlockFixt,
         ::testing::Values(
             std::tuple(std::string("{a();};")),
+            std::tuple(std::string("{a()->\"hello\";};")),
             std::tuple(std::string("{a(test);};")),
             std::tuple(std::string("{{a(test)+3;hello();};};"))
             )
@@ -470,7 +501,7 @@ INSTANTIATE_TEST_SUITE_P(
         ParseIfElse,
         ParseIfElseFixt,
         ::testing::Values(
-            std::tuple(std::string("if(a){a();};")),
+            std::tuple(std::string("if(a(b->test())){a();};")),
             std::tuple(std::string("if(a){a();}else{test+3;};"))
             )
         );
@@ -496,7 +527,7 @@ INSTANTIATE_TEST_SUITE_P(
         ParseWhile,
         ParseWhileFixt,
         ::testing::Values(
-            std::tuple(std::string("while(a){a();};")),
+            std::tuple(std::string("while(a+test->hello(b->test())){a();};")),
             std::tuple(std::string("while(a){a();};"))
             )
         );
@@ -524,7 +555,8 @@ INSTANTIATE_TEST_SUITE_P(
         ParseReturnFixt,
         ::testing::Values(
             std::tuple(std::string("return 3;")),
-            std::tuple(std::string("return 3+4;"))
+            std::tuple(std::string("return 3+4;")),
+            std::tuple(std::string("return 3*4->hello();"))
             )
         );
 

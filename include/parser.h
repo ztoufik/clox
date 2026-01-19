@@ -40,6 +40,7 @@ namespace tua{
             std::expected<Expr*,Error*>parse_str();
             std::expected<Expr*,Error*> parse_bool();
             std::expected<Expr*,Error*> parse_fct_expr();
+            std::expected<Expr*,Error*> parse_acc_expr();
             std::expected<Expr*,Error*> parse_symbol_assign();
             std::expected<Expr*,Error*> parse_fctcalls();
             std::expected<Expr*,Error*> parse_fctcall(Expr* expr);
