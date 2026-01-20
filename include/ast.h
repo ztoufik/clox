@@ -5,19 +5,24 @@
 #include<vector>
 
 #include"lexer.h"
+#include"visitor.h"
 
 namespace tua{
 
-    using Type=std::string;
+using Type=std::string;
 
     struct Stmt{
         virtual ~Stmt(){}
+        virtual void visit(Visitor*)=0;
     };
 
     using Stmts=std::vector<Stmt*>;
 
     struct Expr:Stmt{
         virtual ~Expr(){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_expr();
+        }
     };
 
     struct Symbol:Expr{
@@ -26,6 +31,9 @@ namespace tua{
         Symbol(Symbol&&)=default;
         Symbol& operator=(const Symbol&)=default;
         Symbol& operator=(Symbol&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_symbol();
+        }
         std::string ident_;
         bool operator==(const Symbol lhs)const noexcept {return ident_==lhs.ident_;}
     };
@@ -36,6 +44,9 @@ namespace tua{
         public:
             Block(Stmts&& stmts):stmts(std::move(stmts)){}
             const Stmts& get_stmts() const noexcept {return stmts;}
+        void visit(Visitor *visitor) override{
+            visitor->visit_block();
+        }
             virtual ~Block(){}
             Stmts stmts;
     };
@@ -43,6 +54,9 @@ namespace tua{
     struct ClassStmt:Stmt{
         public:
             ClassStmt(Symbol* ident,Type* parent,Block* block):ident_(std::move(ident)),parent_(parent),block_(block){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_classstmt();
+        }
             virtual ~ClassStmt(){}
             Symbol* ident_;
             Type* parent_;
@@ -56,6 +70,9 @@ namespace tua{
         FctDecl(FctDecl&&)=default;
         FctDecl& operator=(const FctDecl&)=default;
         FctDecl& operator=(FctDecl&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_fctdecl();
+        }
         virtual ~FctDecl(){
             if(! ret_type_){
                 delete ret_type_;
@@ -77,6 +94,9 @@ namespace tua{
 
     struct VarDeclInit:Stmt{
         VarDeclInit(Symbol* ident,Expr* value,Type* type):ident_(ident),value_(value),type_(type){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_vardeclinit();
+        }
         virtual ~VarDeclInit(){
             if(!value_) delete value_;
             if(!type_) delete type_;
@@ -93,6 +113,9 @@ namespace tua{
             const Stmt* get_else_stmt()const noexcept {return else_;}
             const Expr* get_condtion_expr()const noexcept {return condition_;}
             IfElse(Expr* condition,Block* left,Block* right):condition_(condition),if_(left),else_(right){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_ifelse();
+        }
             virtual ~IfElse(){
                 if(!if_){
                     delete if_;
@@ -114,6 +137,9 @@ namespace tua{
     struct WhileStmt:Stmt{
             const Stmt* get_block_stmt()const noexcept {return block_;}
             const Expr* get_condtion_expr()const noexcept {return condition_;}
+        void visit(Visitor *visitor) override{
+            visitor->visit_whilestmt();
+        }
             WhileStmt(Expr* condition,Block* block):condition_(condition),block_(block){}
             virtual ~WhileStmt(){
                 if(!block_ ){
@@ -130,6 +156,9 @@ namespace tua{
     struct Return:Stmt{
             const Expr* get_value()const noexcept {return value_;}
             Return(Expr* value):value_(value){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_return();
+        }
             virtual ~Return(){
                 if(!value_){
                     delete value_;
@@ -143,6 +172,9 @@ namespace tua{
             const Expr* get_left_expr()const noexcept {return left_;}
             const Expr* get_right_expr()const noexcept {return right_;}
             BinExpr(Expr* left,Expr* right):left_(left),right_(right){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_binexpr();
+        }
             virtual ~BinExpr(){
                 if(!left_ && !right_){
                     delete left_;
@@ -157,6 +189,9 @@ namespace tua{
         public:
             const Expr* get_expr()const noexcept {return expr_;}
             UnaryExpr(Expr* expr):expr_(expr){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_unaryexpr();
+        }
             virtual ~UnaryExpr(){
                 if(!expr_){
                     delete expr_;
@@ -167,10 +202,17 @@ namespace tua{
 
     template<TokenKind kind> struct Unar_Expr:UnaryExpr{
         Unar_Expr(Expr* expr):UnaryExpr(expr){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_unarexpr();
+        }
+        
     };
 
     template<TokenKind kind> struct Bin_Expr:BinExpr{
         Bin_Expr(Expr* left,Expr* right):BinExpr(left,right){}
+        void visit(Visitor *visitor) override{
+            visitor->visit_bin_expr();
+        }
     };
 
     using Add=Bin_Expr<TokenKind::PLUS>;
@@ -199,6 +241,9 @@ namespace tua{
         Literal(Literal&&)=default;
         Literal& operator=(const Literal&)=default;
         Literal& operator=(Literal&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_literal();
+        }
         T value;
         bool operator==(const Literal<T>& lhs)const noexcept {return value==lhs.value;}
     };
@@ -215,6 +260,9 @@ namespace tua{
         Assign(Assign&&)=default;
         Assign& operator=(const Assign&)=default;
         Assign& operator=(Assign&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_assign();
+        }
         std::string ident_;
         Expr* value_;
     };
@@ -225,6 +273,9 @@ namespace tua{
         FctCall(FctCall&&)=default;
         FctCall& operator=(const FctCall&)=default;
         FctCall& operator=(FctCall&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_fctcall();
+        }
         Expr* expr_;
         std::vector<Expr*> exprs_;
     };
@@ -236,6 +287,9 @@ namespace tua{
         FctExpr(FctExpr&&)=default;
         FctExpr& operator=(const FctExpr&)=default;
         FctExpr& operator=(FctExpr&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_fctexpr();
+        }
         Type* ret_type;
         Params params_ ;
         Block* block_;
@@ -247,14 +301,19 @@ namespace tua{
         AccExpr(AccExpr&&)=default;
         AccExpr& operator=(const AccExpr&)=default;
         AccExpr& operator=(AccExpr&&)=default;
+        void visit(Visitor *visitor) override{
+            visitor->visit_accexpr();
+        }
         Expr *left_,*right_;
     };
 
 
     struct Program{
         Program(Stmts&& stmts):stmts(stmts){}
+        void visit(Visitor* visitor){
+            visitor->visit_program();
+        }
         Stmts stmts;
     };
 };
-
-#endif 
+#endif
